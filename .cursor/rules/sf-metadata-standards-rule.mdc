@@ -1,0 +1,102 @@
+---
+description: >-
+  Salesforce metadata conventions covering custom objects,
+  fields, Platform Events, Custom Metadata Types, permission sets, and deployment
+  manifest hygiene. Apply when creating or reviewing metadata XML files.
+globs:
+  - "force-app/**/*.object-meta.xml"
+  - "force-app/**/*.field-meta.xml"
+  - "force-app/**/*.event-meta.xml"
+  - "force-app/**/*.customMetadata-meta.xml"
+  - "force-app/**/*.permissionset-meta.xml"
+  - "force-app/**/*.validationRule-meta.xml"
+  - "manifest/package.xml"
+alwaysApply: false
+---
+
+# Metadata Conventions
+
+## API Version
+
+All metadata files must use **API version 66.0** (the project standard defined in `sfdx-project.json`). Do not use lower versions for new components.
+
+## Custom Object Naming
+
+- API names: `PascalCase__c` (e.g., `Loyalty_Stay__c`, `Exception_Log__c`).
+- Use underscores to separate words in the API name (do NOT use camelCase in API names).
+- Labels: Human-readable title case (e.g., "Loyalty Stay", "Exception Log").
+- Plural labels must accurately reflect the object (e.g., "Loyalty Stays").
+- Description field must be populated — explain the object's purpose.
+
+## Custom Field Naming
+
+- API names: `PascalCase__c` for custom fields.
+- Boolean (Checkbox) fields: prefix with `Is` or `Has` where it improves clarity (e.g., `IsEligible__c`).
+- Currency / Number fields: include unit in label if not obvious (e.g., "Points Balance (Non-Qualifying)").
+- Lookup fields: name after the related object (e.g., `LoyaltyProgram__c` on a custom object looking up LoyaltyProgram).
+- All new custom fields must have a Description populated.
+- `<externalId>true</externalId>` only for fields used as integration keys (e.g., `BonvoyID__c`).
+- `<required>true</required>` only when the field is genuinely mandatory for every record — consider validation rules for conditional requirements.
+
+## Platform Events
+
+- API names: `PascalCase__e` (e.g., `Loyalty_Stay_Event__e`).
+- `<publishBehavior>PublishAfterCommit</publishBehavior>` is the default — use this unless the use case specifically requires `PublishImmediately` (fire-and-forget where rollback should not cancel the event).
+- All Platform Event fields must have descriptions.
+- Do not add standard fields to Platform Events; only define custom fields needed for the payload.
+
+## Custom Metadata Types (CMT)
+
+- API names: `PascalCase__mdt` (e.g., `Loyalty_Tier_Tenure_Configuration__mdt`).
+- CMT records: `DeveloperName` must be unique and descriptive (no spaces — use underscores).
+- Use CMT for configuration data that varies by environment but does not belong in Custom Settings (no SOQL limit per query; deployable).
+- Do not store credentials, API keys, or secrets in CMT — use Named Credentials.
+
+## Validation Rules
+
+- Label: describes the condition being prevented (e.g., "BonvoyID Required on Active Member").
+- Error message: must be user-friendly and actionable (tell the user what to fix, not just what is wrong).
+- Error display location: set to the specific field where possible, not just the top of the page.
+- Condition uses `ISPICKVAL`, `ISBLANK`, `NOT(REGEX(...))` — avoid overly complex formulas (>10 lines) in validation rules; use a Flow or Apex trigger instead.
+
+## Flows
+
+> Flow-specific metadata standards live in `sf-flow-standards-rule.mdc`.
+
+## Permission Sets
+
+- Name: describes the functional persona or feature access (e.g., `Loyalty_Admin`, `Stay_Event_Publisher`).
+- Always include a description.
+- Grant field-level permissions at the level of minimum necessary access (read-only unless write is required).
+- Do not use permission sets to grant Profile-level access (system permissions) unless the use case warrants it.
+
+## Deployment Manifest (package.xml)
+
+- Keep `manifest/package.xml` updated and curated — it defines the deployment scope.
+- Group metadata by type in alphabetical order within each `<types>` block.
+- Do not include test-only metadata or scratch-org-only components in the production manifest.
+- API version in package.xml must match project API version (66.0).
+- Deployment order (dependencies): Objects → Fields → Custom Metadata → Apex Classes → Apex Triggers → Flows → Permission Sets.
+
+## Metadata Workflow MCP Guidance
+
+### Step 1 — Before Generation (Schema Reference)
+
+Use `user-Salesforce DX` code-analysis tools or `WebFetch` from the [Metadata API Developer Guide](https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_intro.htm) for the metadata type being created or modified before writing the XML. This ensures correct XML structure, valid field values, and API constraints. Do not rely on memory for metadata XML schemas.
+
+For Tooling API or Data API objects (e.g., `ApexClass`, `ApexTrigger` tooling objects), use `user-Salesforce DX` → `run_soql_query` with `useToolingApi=true`, or `WebFetch` from Salesforce Tooling API docs.
+
+**Fallback:** SF CLI: `sf sobject describe -s <Object> -o <alias>`, or `WebFetch` from the [Metadata API Developer Guide](https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_intro.htm).
+
+### Step 2 — After Generation (Deploy / Retrieve)
+
+Once metadata is generated locally in `force-app/main/default/`, use the deployment priority order:
+
+| Operation | Primary | Fallback |
+|---|---|---|
+| Deploy to org | `user-Salesforce DX` → `deploy_metadata` | SF CLI: `sf project deploy start -o <alias>` |
+| Retrieve from org | `user-Salesforce DX` → `retrieve_metadata` | SF CLI: `sf project retrieve start -o <alias>` |
+
+Both operations require explicit user instruction and confirmation before execution per the agent's two-gate protocol. Update `manifest/package.xml` with new metadata types before deploying via manifest.
+
+> **Full routing policy:** See `sf-mcp-routing-rule` rule for fallback trigger conditions.

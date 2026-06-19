@@ -1,0 +1,87 @@
+---
+description: >-
+  Salesforce MCP server selection policy — priority-ordered routing for every
+  Salesforce task category (org execution, schema lookup, data ops, LWC tooling,
+  metadata generation, deploy/retrieve) with fallback chain ending at SF CLI.
+  Apply when working on any Salesforce code, metadata, or org operations.
+globs:
+  - "force-app/**"
+  - "manifest/**"
+alwaysApply: false
+---
+
+# Salesforce MCP Server Selection Policy
+
+## MCP Server
+
+| Server | Role | When to Use |
+|---|---|---|
+| `user-Salesforce DX` | **Primary execution server** — 47 tools covering org operations, LWC tooling, code analysis, LDS/GraphQL, schema describe, data ops. Requires org alias + directory context. | All Salesforce interactions: SOQL, deploy, retrieve, Apex tests, code analysis, LWC dev assistance, schema operations |
+
+**Fallback:** SF CLI (`sf ...`) when `Salesforce DX` is unavailable or fails.
+
+---
+
+## Priority Routing Table
+
+| Task Category | Primary | Fallback (SF CLI / Web) |
+|---|---|---|
+| **Metadata type schema / XML structure** | `user-Salesforce DX` code-analysis tools or `WebFetch` from Salesforce Metadata API docs | `sf sobject describe` or Metadata API docs |
+| **SOQL queries (read)** | `user-Salesforce DX` → `run_soql_query` | SF CLI: `sf data query -q "<SOQL>" -o <alias>` |
+| **SObject schema describe** | `user-Salesforce DX` → `run_soql_query` (with `useToolingApi=true` for tooling objects) | SF CLI: `sf sobject describe -s <Object> -o <alias>` |
+| **SOSL search across objects** | `user-Salesforce DX` → `run_soql_query` (SOQL alternative) | SF CLI: `sf data search` |
+| **Metadata retrieve from org** | `user-Salesforce DX` → `retrieve_metadata` | SF CLI: `sf project retrieve start -o <alias>` |
+| **Metadata deploy to org** | `user-Salesforce DX` → `deploy_metadata` | SF CLI: `sf project deploy start -o <alias>` |
+| **Apex test execution** | `user-Salesforce DX` → `run_apex_test` | SF CLI: `sf apex test run -o <alias>` |
+| **Apex static code analysis** | `user-Salesforce DX` → `scan_apex_class_for_antipatterns`, `run_code_analyzer`, `list_code_analyzer_rules`, `describe_code_analyzer_rule` | Local pattern analysis via review-agent checklist |
+| **SObject data create / update** | SF CLI: `sf data create record`, `sf data update record` | — |
+| **Related / recent record lookup** | `user-Salesforce DX` → `run_soql_query` | SF CLI: `sf data query` |
+| **Connected user / org identity** | `user-Salesforce DX` → `get_username` | SF CLI: `sf org display -o <alias>` |
+| **List all orgs** | `user-Salesforce DX` → `list_all_orgs` | SF CLI: `sf org list` |
+| **Permission set assignment** | `user-Salesforce DX` → `assign_permission_set` | SF CLI: `sf org assign permset -n <PermSetName> -o <alias>` |
+| **LWC development guidance** | `user-Salesforce DX` → `guide_lwc_development`, `guide_lwc_best_practices`, `guide_lwc_accessibility`, `guide_lwc_security`, `guide_lwc_rtl_support`, `create_lwc_component_from_prd`, `create_lwc_jest_tests`, `review_lwc_jest_tests`, `run_lwc_accessibility_jest_tests`, `orchestrate_lwc_component_creation`, `orchestrate_lwc_component_optimization`, `orchestrate_lwc_component_testing` | `WebFetch` from `developer.salesforce.com/docs/platform/lwc` |
+| **LDS / Wire / GraphQL patterns** | `user-Salesforce DX` → `guide_lds_development`, `guide_lds_data_consistency`, `guide_lds_referential_integrity`, `explore_lds_uiapi`, `fetch_lds_graphql_schema`, `create_lds_graphql_read_query`, `create_lds_graphql_mutation_query`, `test_lds_graphql_query`, `orchestrate_lds_data_requirements`, `guide_lds_graphql` | `WebFetch` from Salesforce LDS docs |
+| **SLDS design / blueprints** | `user-Salesforce DX` → `guide_slds_blueprints`, `explore_slds_blueprints` | `WebFetch` from `lightningdesignsystem.com` |
+| **LWC SLDS 2 uplift** | `user-Salesforce DX` → `orchestrate_lwc_slds2_uplift` | `WebFetch` from SLDS 2 docs |
+| **LWC compilation error diagnosis** | `user-Salesforce DX` → `reference_lwc_compilation_error` | `WebFetch` from LWC docs |
+| **Aura → LWC migration** | `user-Salesforce DX` → `verify_aura_migration_completeness`, `guide_design_general` | `WebFetch` from migration guides |
+| **UTAM page object generation** | `user-Salesforce DX` → `guide_utam_generation` | `WebFetch` from UTAM docs |
+| **Figma → LWC conversion** | `user-Salesforce DX` → `guide_figma_to_lwc_conversion` | `WebFetch` from LWC docs |
+
+---
+
+## Fallback Trigger Conditions
+
+### When to move to SF CLI fallback
+
+- `user-Salesforce DX` returns a connection error, timeout, or tool-not-available response.
+- The user has explicitly disabled the MCP server in Cursor settings.
+- Org alias or directory context is not available in the current session.
+- The operation inherently requires CLI (e.g., re-authentication: `sf org login web -o <alias>`).
+- Always state the reason for the fallback in the response: "Falling back to SF CLI because [reason]."
+
+### Recovery Before Fallback
+
+For error-to-recovery mapping (auth expired, MCP timeout, SOQL governor limits, retrieve/deploy failures, insufficient privileges, missing org alias, etc.), see `.cursor/skills/sf-shared-reference/SKILL.md` Section 2.
+
+---
+
+## Special Cases
+
+### Metadata XML schema reference
+
+Before generating any metadata XML file (CustomObject, Flow, ApexClass, Platform Event, etc.), use `Salesforce DX` code-analysis tools or `WebFetch` from the [Metadata API Developer Guide](https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_intro.htm) to confirm schema shape and valid field values.
+
+### When DX requires context not yet available
+
+`user-Salesforce DX` tools require `usernameOrAlias` and `directory` parameters. If the session has not yet resolved the org alias:
+1. Call `user-Salesforce DX` → `get_username` first to resolve the alias.
+2. If `get_username` fails, fall back to SF CLI: `sf org display`.
+3. Once the alias is known, proceed with the intended DX tool.
+
+### Read-only vs write classification
+
+| Category | Tools | Confirmation required |
+|---|---|---|
+| **Read-only** | `run_soql_query`, `retrieve_metadata` (dry-run), `get_username`, `list_all_orgs`, `scan_apex_class_for_antipatterns`, `run_code_analyzer`, all `guide_*`, all `explore_*`, all `fetch_*`, all `create_*` (metadata file generation — local only) | No |
+| **Write (org-changing)** | `deploy_metadata`, `run_apex_test` (when deploying), `assign_permission_set`, SF CLI data mutation commands (`sf data create record`, `sf data update record`) | Yes — follow the agent's two-gate protocol |

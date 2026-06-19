@@ -1,0 +1,486 @@
+openapi: 3.0.3
+
+info:
+  title: Salesforce eBonus API (Custom)
+  description: >
+    Custom Salesforce endpoint to submit and retrieve eBonus transactions.
+    This API supports goodwill/property bonus processing for Points and Miles.
+
+    Payloads use TransactionJournal field API names directly. Server-managed
+    fields (ActivityDate, CurrencyIsoCode, Status, LoyaltyProgramId, MemberId)
+    are set by CLM during processing and are not provided by the caller.
+  version: 2026Q3.0.0
+
+servers:
+  - description: SwaggerHub API Auto Mocking
+    url: https://virtserver.swaggerhub.com/marriott-api/lylt-sf-ebonus/2026Q3.0.0
+  - url: https://{serverUrl}/services/apexrest
+    description: Salesforce Apex REST endpoint
+    variables:
+      serverUrl:
+        default: marriottloyalty--mitest.sandbox.my.salesforce.com
+        description: Salesforce environment domain (My Domain)
+
+security:
+  - cookieAuth: []
+
+tags:
+  - name: eBonus
+    description: APIs for eBonus submit and transaction refresh/status retrieval
+
+paths:
+  /loyalty/{programName}/sf-ebonus:
+    post:
+      tags:
+        - eBonus
+      summary: Submit eBonus transaction
+      description: >
+        Submits an eBonus accrual TransactionJournal (JournalType=Accrual,
+        JournalSubType=eBonus). ActivityDate is set by the server at processing
+        time, CurrencyIsoCode is set to USD, Status starts as Pending, and
+        LoyaltyProgramId is derived from the URI program context.
+      operationId: submitEBonus
+      parameters:
+        - name: programName
+          in: path
+          required: true
+          description: Loyalty program name from URI. Resolves TransactionJournal.LoyaltyProgramId.
+          schema:
+            type: string
+          example: MarriottBonvoy
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EBonusSubmitRequest'
+            examples:
+              pointsBonus:
+                summary: Points eBonus example
+                value:
+                  Establishment: ATLMA
+                  MembershipNumber: 20982fa3ab9f49ab964a78c6845a1peg.04
+                  JournalType: Accrual
+                  JournalSubType: eBonus
+                  Quantity_Unit__c: Points
+                  Bonus_Reason__c: SERVICE_RECOVERY
+                  BookingDate: '2026-06-15'
+                  ProductId: ATLMA-PTS-001
+                  Quantity: 5000
+                  Partner_Account_Number__c: null
+                  Notes__c: Guest inconvenience compensation
+                  Submitter_EID__c: EID223344
+                  Associate_Id__c: EID112233
+                  ExternalTransactionId: TIP-EBONUS-20260615-0001
+              milesBonus:
+                summary: Miles eBonus example
+                value:
+                  Establishment: ATLMA
+                  MembershipNumber: 20982fa3ab9f49ab964a78c6845a1peg.05
+                  JournalType: Accrual
+                  JournalSubType: eBonus
+                  Quantity_Unit__c: Miles
+                  Bonus_Reason__c: GOODWILL
+                  BookingDate: '2026-06-15'
+                  ProductId: ATLMA-MIL-001
+                  Quantity: 3000
+                  Partner_Account_Number__c: UA-123456789
+                  Notes__c: Flight disruption goodwill
+                  Submitter_EID__c: EID223344
+                  Associate_Id__c: EID112233
+                  ExternalTransactionId: TIP-EBONUS-20260615-0002
+      responses:
+        '201':
+          description: eBonus submitted successfully.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EBonusSubmitResponse'
+              examples:
+                created:
+                  value:
+                    transactionId: a4VDo0000001ABCMA2
+                    Name: '9000001234'
+                    Status: Pending
+                    message: eBonus transaction accepted for processing.
+        '400':
+          description: Invalid request payload or required fields missing.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EBonusErrorResponse'
+        '401':
+          $ref: 'https://api.swaggerhub.com/apis/marriott-api/sf-common-schemas/1.0.0#/components/responses/Unauthorized401'
+        '403':
+          $ref: 'https://api.swaggerhub.com/apis/marriott-api/sf-common-schemas/1.0.0#/components/responses/Forbidden403'
+        '500':
+          $ref: 'https://api.swaggerhub.com/apis/marriott-api/sf-common-schemas/1.0.0#/components/responses/InternalServerError500'
+        '503':
+          $ref: 'https://api.swaggerhub.com/apis/marriott-api/sf-common-schemas/1.0.0#/components/responses/ServiceUnavailable503'
+
+  /loyalty/{programName}/sf-ebonus/{transactionId}:
+    get:
+      tags:
+        - eBonus
+      summary: Retrieve eBonus transaction status
+      description: >
+        Returns the latest status/details for a submitted eBonus transaction.
+        This endpoint supports refresh/status polling for Pending transactions.
+      operationId: getEBonusTransaction
+      parameters:
+        - name: programName
+          in: path
+          required: true
+          description: Loyalty program name from URI.
+          schema:
+            type: string
+          example: MarriottBonvoy
+        - name: transactionId
+          in: path
+          required: true
+          description: Transaction identifier returned by submit API.
+          schema:
+            type: string
+          example: a4VDo0000001ABCMA2
+      responses:
+        '200':
+          description: eBonus transaction retrieved successfully.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EBonusTransactionResponse'
+              examples:
+                processed:
+                  value:
+                    transactionId: a4VDo0000001ABCMA2
+                    Name: '9000001234'
+                    Status: Processed
+                    LoyaltyProgramId: 0lpDo0000000ABCMA2
+                    MemberId: 0lMDo0000000XYZMA2
+                    MembershipNumber: 20982fa3ab9f49ab964a78c6845a1peg.04
+                    Establishment: ATLMA
+                    JournalType: Accrual
+                    JournalSubType: eBonus
+                    ProductId: 01tDo0000000CCC
+                    Bonus_Reason__c: SERVICE_RECOVERY
+                    Quantity: 5000
+                    Quantity_Unit__c: Points
+                    BookingDate: '2026-06-15'
+                    ActivityDate: '2026-06-17T09:30:12Z'
+                    CurrencyIsoCode: USD
+                    Partner_Account_Number__c: null
+                    Notes__c: Guest inconvenience compensation
+                    Submitter_EID__c: EID223344
+                    Associate_Id__c: EID112233
+                    ExternalTransactionId: TIP-EBONUS-20260615-0001
+                    errorCode: null
+                    errorMessage: null
+                failed:
+                  value:
+                    transactionId: a4VDo0000001XYZMA5
+                    Name: '9000001235'
+                    Status: Error
+                    LoyaltyProgramId: 0lpDo0000000ABCMA2
+                    MemberId: 0lMDo0000000QQQMA2
+                    MembershipNumber: 20982fa3ab9f49ab964a78c6845a1peg.05
+                    Establishment: ATLMA
+                    JournalType: Accrual
+                    JournalSubType: eBonus
+                    ProductId: null
+                    Bonus_Reason__c: GOODWILL
+                    Quantity: 3000
+                    Quantity_Unit__c: Miles
+                    BookingDate: '2026-06-15'
+                    ActivityDate: '2026-06-17T09:31:45Z'
+                    CurrencyIsoCode: USD
+                    Partner_Account_Number__c: UA-123456789
+                    Notes__c: Flight disruption goodwill
+                    Submitter_EID__c: EID223344
+                    Associate_Id__c: EID112233
+                    ExternalTransactionId: TIP-EBONUS-20260615-0002
+                    errorCode: INVALID_PRODUCT_CODE
+                    errorMessage: Bonus code is not active for property ATLMA.
+        '400':
+          description: Invalid transaction id or request.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EBonusErrorResponse'
+        '401':
+          $ref: 'https://api.swaggerhub.com/apis/marriott-api/sf-common-schemas/1.0.0#/components/responses/Unauthorized401'
+        '403':
+          $ref: 'https://api.swaggerhub.com/apis/marriott-api/sf-common-schemas/1.0.0#/components/responses/Forbidden403'
+        '404':
+          description: Transaction was not found.
+        '500':
+          $ref: 'https://api.swaggerhub.com/apis/marriott-api/sf-common-schemas/1.0.0#/components/responses/InternalServerError500'
+        '503':
+          $ref: 'https://api.swaggerhub.com/apis/marriott-api/sf-common-schemas/1.0.0#/components/responses/ServiceUnavailable503'
+
+components:
+  securitySchemes:
+    cookieAuth:
+      type: apiKey
+      in: cookie
+      name: BrowserId
+
+  schemas:
+    EBonusSubmitRequest:
+      type: object
+      description: >
+        eBonus submit payload using TransactionJournal field API names.
+        ActivityDate, CurrencyIsoCode, Status, LoyaltyProgramId, and MemberId
+        are server-managed and must not be provided by the caller.
+      required:
+        - Establishment
+        - MembershipNumber
+        - JournalType
+        - JournalSubType
+        - Quantity_Unit__c
+        - Bonus_Reason__c
+        - BookingDate
+        - ProductId
+        - Quantity
+        - Submitter_EID__c
+        - Associate_Id__c
+      properties:
+        Establishment:
+          type: string
+          description: Property Code (MARSHA). Optionally validated against Account.PropertyCode__c.
+          example: ATLMA
+        MembershipNumber:
+          type: string
+          description: Member Account Number. Must map to an active member; CLM resolves/sets MemberId.
+          example: 20982fa3ab9f49ab964a78c6845a1peg.04
+        JournalType:
+          type: string
+          enum: [Accrual]
+          description: Resolves TransactionJournal.JournalTypeId by name. Fixed = Accrual.
+          example: Accrual
+        JournalSubType:
+          type: string
+          enum: [eBonus]
+          description: Resolves TransactionJournal.JournalSubTypeId by name. Fixed = eBonus.
+          example: eBonus
+        Quantity_Unit__c:
+          type: string
+          enum: [Points, Miles]
+          description: Bonus Type. Allowed values Points or Miles.
+          example: Points
+        Bonus_Reason__c:
+          type: string
+          description: Bonus Reason. New custom field.
+          example: SERVICE_RECOVERY
+        BookingDate:
+          type: string
+          format: date
+          description: Bonus Earned Date (date only).
+          example: '2026-06-15'
+        ProductId:
+          type: string
+          description: >
+            Property-specific Bonus Code. Provide the Product2.ProductCode value;
+            CLM looks up Product2 and stores the resolved ProductId on the TJ.
+          example: ATLMA-PTS-001
+        Quantity:
+          type: number
+          format: double
+          minimum: 0.01
+          description: Points/Miles Amount. Must be > 0.
+          example: 5000
+        Partner_Account_Number__c:
+          type: string
+          nullable: true
+          description: Frequent Flyer Number. Required when Quantity_Unit__c = Miles.
+          example: UA-123456789
+        Notes__c:
+          type: string
+          nullable: true
+          description: Submitter Comments (free text).
+          example: Guest inconvenience compensation
+        Submitter_EID__c:
+          type: string
+          description: Submitter EID (Operator ID). New custom field.
+          example: EID223344
+        Associate_Id__c:
+          type: string
+          description: Approver EID (Operator ID).
+          example: EID112233
+        ExternalTransactionId:
+          type: string
+          nullable: true
+          description: Caller idempotency key; maps to TransactionJournal.ExternalTransactionId.
+          example: TIP-EBONUS-20260615-0001
+
+    EBonusSubmitResponse:
+      type: object
+      required:
+        - transactionId
+        - Name
+        - Status
+      properties:
+        transactionId:
+          type: string
+          description: Salesforce TransactionJournal record Id.
+          example: a4VDo0000001ABCMA2
+        Name:
+          type: string
+          description: TransactionJournal Name/Number.
+          example: '9000001234'
+        Status:
+          type: string
+          enum: [Pending, Processed, Error]
+          description: Maps to TransactionJournal.Status. Starts as Pending.
+          example: Pending
+        message:
+          type: string
+          nullable: true
+          example: eBonus transaction accepted for processing.
+
+    EBonusTransactionResponse:
+      type: object
+      description: eBonus transaction view using TransactionJournal field API names.
+      required:
+        - transactionId
+        - Name
+        - Status
+        - LoyaltyProgramId
+        - MembershipNumber
+        - Establishment
+        - JournalType
+        - JournalSubType
+        - Quantity
+        - Quantity_Unit__c
+        - BookingDate
+        - ActivityDate
+        - CurrencyIsoCode
+      properties:
+        transactionId:
+          type: string
+          description: TransactionJournal record Id.
+          example: a4VDo0000001ABCMA2
+        Name:
+          type: string
+          description: TransactionJournal Name/Number.
+          example: '9000001234'
+        Status:
+          type: string
+          enum: [Pending, Processed, Error]
+          description: Maps to TransactionJournal.Status.
+          example: Processed
+        LoyaltyProgramId:
+          type: string
+          description: Maps to TransactionJournal.LoyaltyProgramId (from URI program context).
+          example: 0lpDo0000000ABCMA2
+        MemberId:
+          type: string
+          nullable: true
+          description: Resolved member id; maps to TransactionJournal.MemberId.
+          example: 0lMDo0000000XYZMA2
+        MembershipNumber:
+          type: string
+          description: Maps to TransactionJournal.MembershipNumber.
+          example: 20982fa3ab9f49ab964a78c6845a1peg.04
+        Establishment:
+          type: string
+          description: Property Code; maps to TransactionJournal.Establishment.
+          example: ATLMA
+        JournalType:
+          type: string
+          enum: [Accrual]
+          description: Resolved JournalType name (TransactionJournal.JournalTypeId).
+          example: Accrual
+        JournalSubType:
+          type: string
+          enum: [eBonus]
+          description: Resolved JournalSubType name (TransactionJournal.JournalSubTypeId).
+          example: eBonus
+        ProductId:
+          type: string
+          nullable: true
+          description: Resolved Product2 Id; maps to TransactionJournal.ProductId.
+          example: 01tDo0000000CCC
+        Bonus_Reason__c:
+          type: string
+          nullable: true
+          description: Maps to TransactionJournal.Bonus_Reason__c.
+          example: SERVICE_RECOVERY
+        Quantity:
+          type: number
+          format: double
+          description: Maps to TransactionJournal.Quantity.
+          example: 5000
+        Quantity_Unit__c:
+          type: string
+          enum: [Points, Miles]
+          description: Maps to TransactionJournal.Quantity_Unit__c.
+          example: Points
+        BookingDate:
+          type: string
+          format: date
+          description: Maps to TransactionJournal.BookingDate.
+          example: '2026-06-15'
+        ActivityDate:
+          type: string
+          format: date-time
+          description: Server-set processing timestamp; maps to TransactionJournal.ActivityDate.
+          example: '2026-06-17T09:30:12Z'
+        CurrencyIsoCode:
+          type: string
+          enum: [USD]
+          description: Maps to TransactionJournal.CurrencyIsoCode. Fixed = USD.
+          example: USD
+        Partner_Account_Number__c:
+          type: string
+          nullable: true
+          description: Maps to TransactionJournal.Partner_Account_Number__c.
+          example: UA-123456789
+        Notes__c:
+          type: string
+          nullable: true
+          description: Maps to TransactionJournal.Notes__c.
+          example: Guest inconvenience compensation
+        Submitter_EID__c:
+          type: string
+          nullable: true
+          description: Maps to TransactionJournal.Submitter_EID__c.
+          example: EID223344
+        Associate_Id__c:
+          type: string
+          nullable: true
+          description: Maps to TransactionJournal.Associate_Id__c.
+          example: EID112233
+        ExternalTransactionId:
+          type: string
+          nullable: true
+          description: Maps to TransactionJournal.ExternalTransactionId.
+          example: TIP-EBONUS-20260615-0001
+        errorCode:
+          type: string
+          nullable: true
+          example: INVALID_PRODUCT_CODE
+        errorMessage:
+          type: string
+          nullable: true
+          example: Bonus code is not active for property ATLMA.
+
+    EBonusErrorResponse:
+      type: object
+      properties:
+        errors:
+          type: array
+          items:
+            $ref: '#/components/schemas/EBonusError'
+
+    EBonusError:
+      type: object
+      required:
+        - code
+        - message
+      properties:
+        code:
+          type: string
+          example: INVALID_API_INPUT
+        message:
+          type: string
+          example: Quantity_Unit__c Miles requires Partner_Account_Number__c.

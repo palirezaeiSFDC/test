@@ -1,0 +1,501 @@
+{
+  "status": 0,
+  "result": {
+    "records": [
+      {
+        "attributes": {
+          "type": "StayValidationCodeDispositionMapping__mdt",
+          "url": "/services/data/v67.0/sobjects/StayValidationCodeDispositionMapping__mdt/m07O300003SBKBlIAP"
+        },
+        "DeveloperName": "ACCT_DECEASED",
+        "MasterLabel": "ACCT DECEASED",
+        "Error_Code__c": "AU07",
+        "Disposition_Reason__c": "Member Deceased",
+        "Stay_Status__c": "Posted - Ineligible",
+        "TJ_Status__c": "Processed"
+      },
+      {
+        "attributes": {
+          "type": "StayValidationCodeDispositionMapping__mdt",
+          "url": "/services/data/v67.0/sobjects/StayValidationCodeDispositionMapping__mdt/m07O300003S93f6IAB"
+        },
+        "DeveloperName": "ACCT_NOT_FOUND",
+        "MasterLabel": "ACCT NOT FOUND",
+        "Error_Code__c": "0002",
+        "Disposition_Reason__c": "Account is not found (archived or missing)",
+        "Stay_Status__c": null,
+        "TJ_Status__c": null
+      },
+      {
+        "attributes": {
+          "type": "StayValidationCodeDispositionMapping__mdt",
+          "url": "/services/data/v67.0/sobjects/StayValidationCodeDispositionMapping__mdt/m07O300003SBKzqIAH"
+        },
+        "DeveloperName": "ACCT_STOP_CUST",
+        "MasterLabel": "ACCT STOP CUST",
+        "Error_Code__c": "AU08",
+        "Disposition_Reason__c": "Member Account stopped by customer",
+        "Stay_Status__c": "In Progress",
+        "TJ_Status__c": "Pending"
+      },
+      {
+        "attributes": {
+          "type": "StayValidationCodeDispositionMapping__mdt",
+          "url": "/services/data/v67.0/sobjects/StayValidationCodeDispositionMapping__mdt/m07O300003SCK1JIAX"
+        },
+        "DeveloperName": "ACCT_STOP_MARR",
+        "MasterLabel": "ACCT STOP MARR",
+        "Error_Code__c": "0034",
+        "Disposition_Reason__c": "Member Account stopped by Marriott",
+        "Stay_Status__c": "Posted - Ineligible",
+        "TJ_Status__c": "Processed"
+      },
+      {
+        "attributes": {
+          "type": "StayValidationCodeDispositionMapping__mdt",
+          "url": "/services/data/v67.0/sobjects/StayValidationCodeDispositionMapping__mdt/m07O300003SCRqaIAH"
+        },
+        "DeveloperName": "BRAND_NON_PARTICIPATING",
+        "MasterLabel": "BRAND NON PARTICIPATING",
+        "Error_Code__c": "1121",
+        "Disposition_Reason__c": "Brand not participating in Rewards",
+        "Stay_Status__c": "Posted - Ineligible",
+        "TJ_Status__c": "Processed"
+      },
+      {
+        "attributes": {
+          "type": "StayValidationCodeDispositionMapping__mdt",
+          "url": "/services/data/v67.0/sobjects/StayValidationCodeDispositionMapping__mdt/m07O300003nWsdGIAS"
+        },
+        "DeveloperName": "CANNOT_DELETE_STAY",
+        "MasterLabel": "CANNOT DELETE STAY",
+        "Error_Code__c": "S115",
+        "Disposition_Reason__c": "Stay has already been deleted – cannot delete",
+        "Stay_Status__c": null,
+        "TJ_Status__c": null
+      },
+      {
+        "attributes": {
+          "type": "StayValidationCodeDispositionMapping__mdt",
+          "url": "/services/data/v67.0/sobjects/StayValidationCodeDispositionMapping__mdt/m07O300004JuK8XIAV"
+        },
+        "DeveloperName": "CHARGE_CODE_NOT_ASSIGNED_TO_PROPERTY",
+        "MasterLabel": "CHARGE CODE NOT ASSIGNED TO PROPERTY",
+        "Error_Code__c": "422",
+        "Disposition_Reason__c": "STAY Charge code not assigned to this property",
+        "Stay_Status__c": "Posted - Ineligible",
+        "TJ_Status__c": "Error"
+      },
+      {
+        "attributes": {
+          "type": "StayValidationCodeDispositionMapping__mdt",
+          "url": "/services/data/v67.0/sobjects/StayValidationCodeDispositionMapping__mdt/m07O300003rug9uIAA"
+        },
+        "DeveloperName": "DUPLICATE_CORRECTION",
+        "MasterLabel": "DUPLICATE CORRECTION",
+        "Error_Code__c": "S118",
+        "Disposition_Reason__c": "Stay already corrected; duplicate correction blocked.",
+        "Stay_Status__c": null,
+        "TJ_Status__c": null
+      },
+      {
+        "attributes": {
+          "type": "StayValidationCodeDispositionMapping__mdt",
+          "url": "/services/data/v67.0/sobjects/StayValidationCodeDispositionMapping__mdt/m07O300003SC2x7IAD"
+        },
+        "DeveloperName": "DUPLICATE_STAY",
+        "MasterLabel": "DUPLICATE STAY",
+        "Error_Code__c": "1028",
+        "Disposition_Reason__c": "Exact duplicate or overlap stay",
+        "Stay_Status__c": "Posted - Ineligible",
+        "TJ_Status__c": "Processed"
+      },
+      {
+        "attributes": {
+          "type": "StayValidationCodeDispositionMapping__mdt",
+          "url": "/services/data/v67.0/sobjects/StayValidationCodeDispositionMapping__mdt/m07O300003kzy5HIAQ"
+        },
+        "DeveloperName": "FUTURE_STAY_CONNECTED_PMS_CHECK_IN",
+        "MasterLabel": "FUTURE STAY CONNECTED PMS CHECK IN",
+        "Error_Code__c": "SM01",
+        "Disposition_Reason__c": "Check-in date in future",
+        "Stay_Status__c": "Posted - Ineligible",
+        "TJ_Status__c": "Processed"
+      },
+      {
+        "attributes": {
+          "type": "StayValidationCodeDispositionMapping__mdt",
+          "url": "/services/data/v67.0/sobjects/StayValidationCodeDispositionMapping__mdt/m07O300003SCJe1IAH"
+        },
+        "DeveloperName": "FUTURE_STAY_CONNECTED_PMS_CHECK_OUT",
+        "MasterLabel": "FUTURE STAY CONNECTED PMS CHECK OUT",
+        "Error_Code__c": "1005",
+        "Disposition_Reason__c": "Check-out date in future",
+        "Stay_Status__c": "Posted - Ineligible",
+        "TJ_Status__c": "Processed"
+      },
+      {
+        "attributes": {
+          "type": "StayValidationCodeDispositionMapping__mdt",
+          "url": "/services/data/v67.0/sobjects/StayValidationCodeDispositionMapping__mdt/m07O300003kzcGlIAI"
+        },
+        "DeveloperName": "FUTURE_STAY_STAY_FILE_CHECK_IN",
+        "MasterLabel": "FUTURE STAY STAY FILE CHECK IN",
+        "Error_Code__c": "SM01",
+        "Disposition_Reason__c": "Check-in date in future",
+        "Stay_Status__c": "Suspended",
+        "TJ_Status__c": "Error"
+      },
+      {
+        "attributes": {
+          "type": "StayValidationCodeDispositionMapping__mdt",
+          "url": "/services/data/v67.0/sobjects/StayValidationCodeDispositionMapping__mdt/m07O300003SBxQEIA1"
+        },
+        "DeveloperName": "FUTURE_STAY_STAY_FILE_CHECK_OUT",
+        "MasterLabel": "FUTURE STAY STAY FILE CHECK OUT",
+        "Error_Code__c": "1005",
+        "Disposition_Reason__c": "Check-out date in future",
+        "Stay_Status__c": "Suspended",
+        "TJ_Status__c": "Error"
+      },
+      {
+        "attributes": {
+          "type": "StayValidationCodeDispositionMapping__mdt",
+          "url": "/services/data/v67.0/sobjects/StayValidationCodeDispositionMapping__mdt/m07O3000044E5JHIA0"
+        },
+        "DeveloperName": "HOTEL_CERT_NOT_ALLOWED_EXEC_RESIDENCE",
+        "MasterLabel": "HOTEL_CERT_NOT_ALLOWED_EXEC_RESIDENCE",
+        "Error_Code__c": "1132",
+        "Disposition_Reason__c": "Certificate not allowed for stays at Executive Residence",
+        "Stay_Status__c": "Exception Handling",
+        "TJ_Status__c": "Error"
+      },
+      {
+        "attributes": {
+          "type": "StayValidationCodeDispositionMapping__mdt",
+          "url": "/services/data/v67.0/sobjects/StayValidationCodeDispositionMapping__mdt/m07O3000043jgofIAA"
+        },
+        "DeveloperName": "HOTEL_CERT_NOT_ALLOWED_NON_REDEMPTION",
+        "MasterLabel": "HOTEL_CERT_NOT_ALLOWED_NON_REDEMPTION",
+        "Error_Code__c": "SM04",
+        "Disposition_Reason__c": "Hotel Cert not allowed for non-Redemption Stay",
+        "Stay_Status__c": "Exception Handling",
+        "TJ_Status__c": "Error"
+      },
+      {
+        "attributes": {
+          "type": "StayValidationCodeDispositionMapping__mdt",
+          "url": "/services/data/v67.0/sobjects/StayValidationCodeDispositionMapping__mdt/m07O300003iSRMIIA4"
+        },
+        "DeveloperName": "INCIDENTAL_NO_EARN",
+        "MasterLabel": "INCIDENTAL NO EARN",
+        "Error_Code__c": "1015",
+        "Disposition_Reason__c": "No points earned on incidental stays",
+        "Stay_Status__c": "Posted - Ineligible",
+        "TJ_Status__c": "Processed"
+      },
+      {
+        "attributes": {
+          "type": "StayValidationCodeDispositionMapping__mdt",
+          "url": "/services/data/v67.0/sobjects/StayValidationCodeDispositionMapping__mdt/m07O300003SC1jdIAD"
+        },
+        "DeveloperName": "INVALID_DATE_RANGE",
+        "MasterLabel": "INVALID DATE RANGE",
+        "Error_Code__c": "1004",
+        "Disposition_Reason__c": "Checkout before check-in",
+        "Stay_Status__c": "Suspended",
+        "TJ_Status__c": "Error"
+      },
+      {
+        "attributes": {
+          "type": "StayValidationCodeDispositionMapping__mdt",
+          "url": "/services/data/v67.0/sobjects/StayValidationCodeDispositionMapping__mdt/m07O300003nvlFqIAI"
+        },
+        "DeveloperName": "MARBUS02",
+        "MasterLabel": "MARBUS02",
+        "Error_Code__c": "1035",
+        "Disposition_Reason__c": "Stay with a Marriott employee market code",
+        "Stay_Status__c": "Posted - Ineligible",
+        "TJ_Status__c": "Processed"
+      },
+      {
+        "attributes": {
+          "type": "StayValidationCodeDispositionMapping__mdt",
+          "url": "/services/data/v67.0/sobjects/StayValidationCodeDispositionMapping__mdt/m07O300003nWx9dIAC"
+        },
+        "DeveloperName": "MILES_STAY_NOT_EDITABLE",
+        "MasterLabel": "MILES_STAY_NOT_EDITABLE",
+        "Error_Code__c": "S116",
+        "Disposition_Reason__c": "Miles stay sent to Airline cannot be modified or deleted",
+        "Stay_Status__c": null,
+        "TJ_Status__c": null
+      },
+      {
+        "attributes": {
+          "type": "StayValidationCodeDispositionMapping__mdt",
+          "url": "/services/data/v67.0/sobjects/StayValidationCodeDispositionMapping__mdt/m07O300003SCjBQIA1"
+        },
+        "DeveloperName": "MULTI_ROOM_EXCEEDED",
+        "MasterLabel": "MULTI ROOM EXCEEDED",
+        "Error_Code__c": "1130",
+        "Disposition_Reason__c": "More than 3 stays same date range",
+        "Stay_Status__c": "Posted - Ineligible",
+        "TJ_Status__c": "Processed"
+      },
+      {
+        "attributes": {
+          "type": "StayValidationCodeDispositionMapping__mdt",
+          "url": "/services/data/v67.0/sobjects/StayValidationCodeDispositionMapping__mdt/m07O300003SCNJtIAP"
+        },
+        "DeveloperName": "OVERLAPPING_STAY",
+        "MasterLabel": "OVERLAPPING STAY",
+        "Error_Code__c": "1038",
+        "Disposition_Reason__c": "Overlap across different properties",
+        "Stay_Status__c": "Posted - Ineligible",
+        "TJ_Status__c": "Processed"
+      },
+      {
+        "attributes": {
+          "type": "StayValidationCodeDispositionMapping__mdt",
+          "url": "/services/data/v67.0/sobjects/StayValidationCodeDispositionMapping__mdt/m07O300003nXiQtIAK"
+        },
+        "DeveloperName": "PARTNER_STAY_DATES_INVALID",
+        "MasterLabel": "PARTNER_STAY_DATES_INVALID",
+        "Error_Code__c": "S109",
+        "Disposition_Reason__c": "Stay dates invalid for Partner",
+        "Stay_Status__c": "Suspended",
+        "TJ_Status__c": "Error"
+      },
+      {
+        "attributes": {
+          "type": "StayValidationCodeDispositionMapping__mdt",
+          "url": "/services/data/v67.0/sobjects/StayValidationCodeDispositionMapping__mdt/m07O300003iZtZpIAK"
+        },
+        "DeveloperName": "PPM_NOT_FOUND",
+        "MasterLabel": "PPM NOT FOUND",
+        "Error_Code__c": null,
+        "Disposition_Reason__c": "Charge code not assigned to this property",
+        "Stay_Status__c": "Posted - Ineligible",
+        "TJ_Status__c": "Error"
+      },
+      {
+        "attributes": {
+          "type": "StayValidationCodeDispositionMapping__mdt",
+          "url": "/services/data/v67.0/sobjects/StayValidationCodeDispositionMapping__mdt/m07O300003nXkfSIAS"
+        },
+        "DeveloperName": "PREVIOUSLY_CORRECTED_STAY",
+        "MasterLabel": "PREVIOUSLY_CORRECTED_STAY",
+        "Error_Code__c": "S118",
+        "Disposition_Reason__c": "Stay has already been corrected",
+        "Stay_Status__c": null,
+        "TJ_Status__c": null
+      },
+      {
+        "attributes": {
+          "type": "StayValidationCodeDispositionMapping__mdt",
+          "url": "/services/data/v67.0/sobjects/StayValidationCodeDispositionMapping__mdt/m07O300003nXstyIAC"
+        },
+        "DeveloperName": "PREVIOUSLY_RESURRECTED_STAY",
+        "MasterLabel": "PREVIOUSLY_ RESURRECTED_STAY",
+        "Error_Code__c": "S117",
+        "Disposition_Reason__c": "Stay was previously resurrected",
+        "Stay_Status__c": null,
+        "TJ_Status__c": null
+      },
+      {
+        "attributes": {
+          "type": "StayValidationCodeDispositionMapping__mdt",
+          "url": "/services/data/v67.0/sobjects/StayValidationCodeDispositionMapping__mdt/m07O300003SCe7QIAT"
+        },
+        "DeveloperName": "PROP_CODE_EMPTY",
+        "MasterLabel": "PROP CODE EMPTY",
+        "Error_Code__c": "S104",
+        "Disposition_Reason__c": "Unknown or invalid Property or MARSHA Code",
+        "Stay_Status__c": "Suspended",
+        "TJ_Status__c": "Error"
+      },
+      {
+        "attributes": {
+          "type": "StayValidationCodeDispositionMapping__mdt",
+          "url": "/services/data/v67.0/sobjects/StayValidationCodeDispositionMapping__mdt/m07O300003SC94jIAD"
+        },
+        "DeveloperName": "PROP_NON_PARTICIPATING",
+        "MasterLabel": "PROP NON PARTICIPATING",
+        "Error_Code__c": "1120",
+        "Disposition_Reason__c": "Property not participating in Rewards",
+        "Stay_Status__c": "Posted - Ineligible",
+        "TJ_Status__c": "Processed"
+      },
+      {
+        "attributes": {
+          "type": "StayValidationCodeDispositionMapping__mdt",
+          "url": "/services/data/v67.0/sobjects/StayValidationCodeDispositionMapping__mdt/m07O300003SCG0nIAH"
+        },
+        "DeveloperName": "PROP_NOT_FOUND",
+        "MasterLabel": "PROP NOT FOUND",
+        "Error_Code__c": "1016",
+        "Disposition_Reason__c": "Property not found",
+        "Stay_Status__c": "Suspended",
+        "TJ_Status__c": "Error"
+      },
+      {
+        "attributes": {
+          "type": "StayValidationCodeDispositionMapping__mdt",
+          "url": "/services/data/v67.0/sobjects/StayValidationCodeDispositionMapping__mdt/m07O300003SCLzRIAX"
+        },
+        "DeveloperName": "PROP_NOT_OPEN",
+        "MasterLabel": "PROP NOT OPEN",
+        "Error_Code__c": "1018",
+        "Disposition_Reason__c": "Property not open during stay",
+        "Stay_Status__c": "Suspended",
+        "TJ_Status__c": "Error"
+      },
+      {
+        "attributes": {
+          "type": "StayValidationCodeDispositionMapping__mdt",
+          "url": "/services/data/v67.0/sobjects/StayValidationCodeDispositionMapping__mdt/m07O300004GNALYIA5"
+        },
+        "DeveloperName": "REDEMPTION_BOOKING_MISSING",
+        "MasterLabel": "REDEMPTION_BOOKING_MISSING",
+        "Error_Code__c": "1127",
+        "Disposition_Reason__c": "NO CERT FOUND FOR REDEMPTION STAY",
+        "Stay_Status__c": "Exception Handling",
+        "TJ_Status__c": "Error"
+      },
+      {
+        "attributes": {
+          "type": "StayValidationCodeDispositionMapping__mdt",
+          "url": "/services/data/v67.0/sobjects/StayValidationCodeDispositionMapping__mdt/m07O3000045H7gEIAS"
+        },
+        "DeveloperName": "REDEMPTION_BOOKING_NOT_FOUND",
+        "MasterLabel": "REDEMPTION_BOOKING_NOT_FOUND",
+        "Error_Code__c": "4014",
+        "Disposition_Reason__c": "Certificate not found",
+        "Stay_Status__c": "Exception Handling",
+        "TJ_Status__c": "Error"
+      },
+      {
+        "attributes": {
+          "type": "StayValidationCodeDispositionMapping__mdt",
+          "url": "/services/data/v67.0/sobjects/StayValidationCodeDispositionMapping__mdt/m07O3000045H771IAC"
+        },
+        "DeveloperName": "REDEMPTION_BOOKING_WRONG_CUSTOMER",
+        "MasterLabel": "REDEMPTION_BOOKING_WRONG_CUSTOMER",
+        "Error_Code__c": "SM07",
+        "Disposition_Reason__c": "Certificate belongs to a different Customer",
+        "Stay_Status__c": "Exception Handling",
+        "TJ_Status__c": "Error"
+      },
+      {
+        "attributes": {
+          "type": "StayValidationCodeDispositionMapping__mdt",
+          "url": "/services/data/v67.0/sobjects/StayValidationCodeDispositionMapping__mdt/m07O3000045Eh4aIAC"
+        },
+        "DeveloperName": "REDEMPTION_CANCELED_VOUCHER_STAY",
+        "MasterLabel": "REDEMPTION_CANCELED_VOUCHER_STAY",
+        "Error_Code__c": "1138",
+        "Disposition_Reason__c": "Cancelled Cert For Redemption Stay",
+        "Stay_Status__c": "Exception Handling",
+        "TJ_Status__c": "Error"
+      },
+      {
+        "attributes": {
+          "type": "StayValidationCodeDispositionMapping__mdt",
+          "url": "/services/data/v67.0/sobjects/StayValidationCodeDispositionMapping__mdt/m07O300003lpaHLIAY"
+        },
+        "DeveloperName": "REVENUE_TOO_LARGE",
+        "MasterLabel": "REVENUE_TOO_LARGE",
+        "Error_Code__c": "SM15",
+        "Disposition_Reason__c": "Total Revenue is too large and cannot be processed",
+        "Stay_Status__c": "Suspended",
+        "TJ_Status__c": "Error"
+      },
+      {
+        "attributes": {
+          "type": "StayValidationCodeDispositionMapping__mdt",
+          "url": "/services/data/v67.0/sobjects/StayValidationCodeDispositionMapping__mdt/m07O300003nXqX9IAK"
+        },
+        "DeveloperName": "STAY_NOT_EDITABLE",
+        "MasterLabel": "STAY_NOT_EDITABLE",
+        "Error_Code__c": "S114",
+        "Disposition_Reason__c": "Stay cannot be modified since it has already been deleted",
+        "Stay_Status__c": null,
+        "TJ_Status__c": null
+      },
+      {
+        "attributes": {
+          "type": "StayValidationCodeDispositionMapping__mdt",
+          "url": "/services/data/v67.0/sobjects/StayValidationCodeDispositionMapping__mdt/m07O300003nXdiJIAS"
+        },
+        "DeveloperName": "STAY_NOT_FOUND",
+        "MasterLabel": "STAY_NOT_FOUND",
+        "Error_Code__c": "5004",
+        "Disposition_Reason__c": "Stay details not found",
+        "Stay_Status__c": null,
+        "TJ_Status__c": null
+      },
+      {
+        "attributes": {
+          "type": "StayValidationCodeDispositionMapping__mdt",
+          "url": "/services/data/v67.0/sobjects/StayValidationCodeDispositionMapping__mdt/m07O300003SCUBoIAP"
+        },
+        "DeveloperName": "STAY_TOO_OLD_18M",
+        "MasterLabel": "STAY TOO OLD 18M",
+        "Error_Code__c": "1124",
+        "Disposition_Reason__c": "Stay older than 18 months can’t be added in Empower",
+        "Stay_Status__c": "Posted - Ineligible",
+        "TJ_Status__c": "Processed"
+      },
+      {
+        "attributes": {
+          "type": "StayValidationCodeDispositionMapping__mdt",
+          "url": "/services/data/v67.0/sobjects/StayValidationCodeDispositionMapping__mdt/m07O300003rug9vIAA"
+        },
+        "DeveloperName": "STAY_TOO_OLD_18M_CEC",
+        "MasterLabel": "STAY_TOO_OLD_18M_CEC",
+        "Error_Code__c": "1003",
+        "Disposition_Reason__c": "Stay older than 18 months can’t be modified in Empower",
+        "Stay_Status__c": null,
+        "TJ_Status__c": null
+      },
+      {
+        "attributes": {
+          "type": "StayValidationCodeDispositionMapping__mdt",
+          "url": "/services/data/v67.0/sobjects/StayValidationCodeDispositionMapping__mdt/m07O300003pfgWNIAY"
+        },
+        "DeveloperName": "STAY_TOO_OLD_18M_DELETE",
+        "MasterLabel": "STAY TOO OLD 18M DELETE",
+        "Error_Code__c": "1119",
+        "Disposition_Reason__c": "Stays older than 18 months cannot be deleted",
+        "Stay_Status__c": null,
+        "TJ_Status__c": null
+      },
+      {
+        "attributes": {
+          "type": "StayValidationCodeDispositionMapping__mdt",
+          "url": "/services/data/v67.0/sobjects/StayValidationCodeDispositionMapping__mdt/m07O300003nfewIIAQ"
+        },
+        "DeveloperName": "STAY_TOO_OLD_18M_MODIFY",
+        "MasterLabel": "STAY_TOO_OLD_18M_MODIFY",
+        "Error_Code__c": "1003",
+        "Disposition_Reason__c": "Stay older than 18 months can’t be modified in Empower",
+        "Stay_Status__c": null,
+        "TJ_Status__c": null
+      },
+      {
+        "attributes": {
+          "type": "StayValidationCodeDispositionMapping__mdt",
+          "url": "/services/data/v67.0/sobjects/StayValidationCodeDispositionMapping__mdt/m07O300003SCIRmIAP"
+        },
+        "DeveloperName": "STAY_TOO_OLD_24M",
+        "MasterLabel": "STAY TOO OLD 24M",
+        "Error_Code__c": "1003",
+        "Disposition_Reason__c": "Stay older than 2 years",
+        "Stay_Status__c": "Posted - Ineligible",
+        "TJ_Status__c": "Processed"
+      }
+    ],
+    "totalSize": 41,
+    "done": true
+  }
+}

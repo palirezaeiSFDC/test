@@ -1,0 +1,644 @@
+{
+  "epics": [
+    {
+      "key": "LYLT-355",
+      "summary": "*Earn | P1 | CLM Points Expiration (SF Configuration) Q3 Dependency",
+      "status": "Backlog",
+      "priority": "Critical or Must Have",
+      "assignee": "Marcus Forbes",
+      "labels": [
+        "earn_replat",
+        "earn_replat_p1"
+      ],
+      "description_text": "Epic Description\nConfigure and manage the points expiration rules based on the source of points earned. Create a flexible and dynamic framework that can handle various sources of points, such as purchases, promotions, referrals, and more\u2014each with its own set of expiration rules. This framework will give member\u2019s transparency into when points earned from different sources will expire, allowing them to redeem more efficiently and expediently.\nCurrent State: 24 month expiry system based on member activity\nFuture State: Rules by source for specific expiration policy\nEpic Details\nExpiration date assignment:\nPoint Categories with different expiration dates: Points Earned from Stay, Vistana Points, MVW Points, Bonus Points  any other points?\nActivity Base Point earn = Stay processing earn (Expiration rules policy based on date of activity)\n\nFixed Base Point earn = All other processing, bonus codes etc. (Fixed expiration date per point earn source)\n\nExpiration date execution:\nPoints will expire in the system and no longer be available to member when said points reach the expiration date. Member will still retain any points that have not yet reached expiration and will see the expiration and remaining points reflected in their account details. Member can view in their account page when their points will expire.\nAssumptions (if applicable)\nPoint Expiration needs to be based on type of activity and tier\nEx 1. Points earned via a specific activity expire in 3 months\nEx 2. Ambassador Tier Member gets 3 years before their points expire due to inactivity\nEx 3. Points earned via Promo expire in 6 months\n\nConfigurable for changes - expiry model changes, activity type grouping changes or rules change.\n\nMVW (Post-Spinoff vs Pre-Spinoff)\n\nOut-of-Scope\nBusiness Use Cases (The Life of a Point)\nPoint Based Earn - 24 month policy\nStay processing earn\n\nAdjustment of Points, automatic or manual.\n\n\n(P2) Promotion Based Earn in points - Configurable policy  <=24 months\n\nCurrent Bonvoy Points Expiration Policy\n1.6.d. Points Expiration Policy. Members must remain active in the Loyalty Program to retain Points they accumulate. If a Member Account is inactive for twenty-four (24) consecutive months, that Member Account will forfeit all accumulated Points. Members can remain active in the Loyalty Program and retain accumulated Points by earning Points or Miles, redeeming Points, or purchasing Points (as described in 2.9) in the Loyalty Program at least once every twenty-four (24) months, all subject to the exceptions described below. If a Member does not maintain an active status for five (5) consecutive years, the Member\u2019s Account may be deactivated. Once Points are forfeited, the Points cannot be reinstated, but a Member can earn new Points, unless that Member\u2019s Account has been deactivated.\n\u00a0i. Not all Points activities help maintain active status in the Loyalty Program. Examples of activities that do not count toward maintaining an active status in the Loyalty Program include, but are not limited to:\n\u00a0A. Gifting or transferring Points;\n\u00a0B. Receiving Points as a gift or transfer\n\u00a0ii. Converting Points to Miles or Miles to Points counts toward maintaining an active status. Members can also remain active by converting Points to other designated partners or converting from designated partners to Points (as described in Section 2.10).\n\u00a0iii. Awards redeemed by a Member prior to Point forfeiture are still valid even though the Award may not yet have been fulfilled at the time of Point forfeiture. However, if those Awards are cancelled after the Points expiration date, those Points are still subject to forfeiture. For example, if a Member redeems Points for an Award Redemption Stay that occurs after the Points expiration date, and then cancels the reservation prior to arrival without having completed any qualifying activity to extend the expiration date, those Points will expire.\n\u00a0iv. The Points expiration policy does not currently affect Points in a Lifetime Elite Membership Account; however, the Loyalty Program may choose to apply a Points expiration policy to Lifetime Elite Membership Accounts in the future.\n",
+      "links": [
+        {
+          "id": "3343158",
+          "self": "https://marriottcloud.atlassian.net/rest/api/3/issueLink/3343158",
+          "type": {
+            "id": "10003",
+            "name": "Relates",
+            "inward": "Relates to",
+            "outward": "Relates to",
+            "self": "https://marriottcloud.atlassian.net/rest/api/3/issueLinkType/10003"
+          },
+          "inwardIssue": {
+            "id": "1911062",
+            "key": "LYLT-86",
+            "self": "https://marriottcloud.atlassian.net/rest/api/3/issue/1911062",
+            "fields": {
+              "summary": "EM7: Earn - points expiration rules",
+              "status": {
+                "self": "https://marriottcloud.atlassian.net/rest/api/3/status/10003",
+                "description": "The work item is on the Backlog.",
+                "iconUrl": "https://marriottcloud.atlassian.net/images/icons/statuses/generic.png",
+                "name": "Backlog",
+                "id": "10003",
+                "statusCategory": {
+                  "self": "https://marriottcloud.atlassian.net/rest/api/3/statuscategory/2",
+                  "id": 2,
+                  "key": "new",
+                  "colorName": "blue-gray",
+                  "name": "To Do"
+                }
+              },
+              "priority": {
+                "self": "https://marriottcloud.atlassian.net/rest/api/3/priority/10002",
+                "iconUrl": "https://marriottcloud.atlassian.net/images/icons/priorities/high.svg",
+                "name": "High or Should Have",
+                "id": "10002"
+              },
+              "issuetype": {
+                "self": "https://marriottcloud.atlassian.net/rest/api/3/issuetype/10004",
+                "id": "10004",
+                "description": "A \"deployable\" work item representing user goals and acceptance criteria under an Epic.",
+                "iconUrl": "https://marriottcloud.atlassian.net/rest/api/2/universal_avatar/view/type/issuetype/avatar/10315?size=medium",
+                "name": "Story",
+                "subtask": false,
+                "avatarId": 10315,
+                "hierarchyLevel": 0
+              }
+            }
+          }
+        },
+        {
+          "id": "3382291",
+          "self": "https://marriottcloud.atlassian.net/rest/api/3/issueLink/3382291",
+          "type": {
+            "id": "10003",
+            "name": "Relates",
+            "inward": "Relates to",
+            "outward": "Relates to",
+            "self": "https://marriottcloud.atlassian.net/rest/api/3/issueLinkType/10003"
+          },
+          "outwardIssue": {
+            "id": "2495535",
+            "key": "LYLT-504",
+            "self": "https://marriottcloud.atlassian.net/rest/api/3/issue/2495535",
+            "fields": {
+              "summary": "Loyalty Foundations | Loyalty Earned Currencies",
+              "status": {
+                "self": "https://marriottcloud.atlassian.net/rest/api/3/status/10005",
+                "description": "The work item is completed and cannot be reopened.",
+                "iconUrl": "https://marriottcloud.atlassian.net/images/icons/statuses/closed.png",
+                "name": "Done",
+                "id": "10005",
+                "statusCategory": {
+                  "self": "https://marriottcloud.atlassian.net/rest/api/3/statuscategory/3",
+                  "id": 3,
+                  "key": "done",
+                  "colorName": "green",
+                  "name": "Done"
+                }
+              },
+              "priority": {
+                "self": "https://marriottcloud.atlassian.net/rest/api/3/priority/10001",
+                "iconUrl": "https://marriottcloud.atlassian.net/images/icons/priorities/highest.svg",
+                "name": "Critical or Must Have",
+                "id": "10001"
+              },
+              "issuetype": {
+                "self": "https://marriottcloud.atlassian.net/rest/api/3/issuetype/10000",
+                "id": "10000",
+                "description": "A \"go live\" work item representing incremental customer value.",
+                "iconUrl": "https://marriottcloud.atlassian.net/images/icons/issuetypes/epic.svg",
+                "name": "Epic",
+                "subtask": false,
+                "hierarchyLevel": 1
+              }
+            }
+          }
+        },
+        {
+          "id": "3459333",
+          "self": "https://marriottcloud.atlassian.net/rest/api/3/issueLink/3459333",
+          "type": {
+            "id": "10003",
+            "name": "Relates",
+            "inward": "Relates to",
+            "outward": "Relates to",
+            "self": "https://marriottcloud.atlassian.net/rest/api/3/issueLinkType/10003"
+          },
+          "outwardIssue": {
+            "id": "2821621",
+            "key": "LYLT-1571",
+            "self": "https://marriottcloud.atlassian.net/rest/api/3/issue/2821621",
+            "fields": {
+              "summary": "Redeem | P1 | SF Integrations | Rules Management: Source Bucket Management",
+              "status": {
+                "self": "https://marriottcloud.atlassian.net/rest/api/3/status/10019",
+                "description": "",
+                "iconUrl": "https://marriottcloud.atlassian.net/images/icons/statuses/generic.png",
+                "name": "Plan",
+                "id": "10019",
+                "statusCategory": {
+                  "self": "https://marriottcloud.atlassian.net/rest/api/3/statuscategory/2",
+                  "id": 2,
+                  "key": "new",
+                  "colorName": "blue-gray",
+                  "name": "To Do"
+                }
+              },
+              "priority": {
+                "self": "https://marriottcloud.atlassian.net/rest/api/3/priority/10001",
+                "iconUrl": "https://marriottcloud.atlassian.net/images/icons/priorities/highest.svg",
+                "name": "Critical or Must Have",
+                "id": "10001"
+              },
+              "issuetype": {
+                "self": "https://marriottcloud.atlassian.net/rest/api/3/issuetype/10000",
+                "id": "10000",
+                "description": "A \"go live\" work item representing incremental customer value.",
+                "iconUrl": "https://marriottcloud.atlassian.net/images/icons/issuetypes/epic.svg",
+                "name": "Epic",
+                "subtask": false,
+                "hierarchyLevel": 1
+              }
+            }
+          }
+        },
+        {
+          "id": "3488188",
+          "self": "https://marriottcloud.atlassian.net/rest/api/3/issueLink/3488188",
+          "type": {
+            "id": "10001",
+            "name": "Cloners",
+            "inward": "Is cloned by",
+            "outward": "Clones",
+            "self": "https://marriottcloud.atlassian.net/rest/api/3/issueLinkType/10001"
+          },
+          "inwardIssue": {
+            "id": "3897568",
+            "key": "LYLT-10444",
+            "self": "https://marriottcloud.atlassian.net/rest/api/3/issue/3897568",
+            "fields": {
+              "summary": "Earn | P1 | Integration with TIP for Stay Processing of Standardized Stay File with ACRS attributes",
+              "status": {
+                "self": "https://marriottcloud.atlassian.net/rest/api/3/status/10013",
+                "description": "The Epic is ready for the Refinement meeting.",
+                "iconUrl": "https://marriottcloud.atlassian.net/images/icons/statuses/generic.png",
+                "name": "Refinement",
+                "id": "10013",
+                "statusCategory": {
+                  "self": "https://marriottcloud.atlassian.net/rest/api/3/statuscategory/2",
+                  "id": 2,
+                  "key": "new",
+                  "colorName": "blue-gray",
+                  "name": "To Do"
+                }
+              },
+              "priority": {
+                "self": "https://marriottcloud.atlassian.net/rest/api/3/priority/10001",
+                "iconUrl": "https://marriottcloud.atlassian.net/images/icons/priorities/highest.svg",
+                "name": "Critical or Must Have",
+                "id": "10001"
+              },
+              "issuetype": {
+                "self": "https://marriottcloud.atlassian.net/rest/api/3/issuetype/10000",
+                "id": "10000",
+                "description": "A \"go live\" work item representing incremental customer value.",
+                "iconUrl": "https://marriottcloud.atlassian.net/images/icons/issuetypes/epic.svg",
+                "name": "Epic",
+                "subtask": false,
+                "hierarchyLevel": 1
+              }
+            }
+          }
+        },
+        {
+          "id": "3505645",
+          "self": "https://marriottcloud.atlassian.net/rest/api/3/issueLink/3505645",
+          "type": {
+            "id": "10003",
+            "name": "Relates",
+            "inward": "Relates to",
+            "outward": "Relates to",
+            "self": "https://marriottcloud.atlassian.net/rest/api/3/issueLinkType/10003"
+          },
+          "inwardIssue": {
+            "id": "2406326",
+            "key": "LYLT-409",
+            "self": "https://marriottcloud.atlassian.net/rest/api/3/issue/2406326",
+            "fields": {
+              "summary": "Redeem | P1 | SF Integrations | Redemption Tracking: Deferred Fulfillment for Room Reservation",
+              "status": {
+                "self": "https://marriottcloud.atlassian.net/rest/api/3/status/10019",
+                "description": "",
+                "iconUrl": "https://marriottcloud.atlassian.net/images/icons/statuses/generic.png",
+                "name": "Plan",
+                "id": "10019",
+                "statusCategory": {
+                  "self": "https://marriottcloud.atlassian.net/rest/api/3/statuscategory/2",
+                  "id": 2,
+                  "key": "new",
+                  "colorName": "blue-gray",
+                  "name": "To Do"
+                }
+              },
+              "priority": {
+                "self": "https://marriottcloud.atlassian.net/rest/api/3/priority/10001",
+                "iconUrl": "https://marriottcloud.atlassian.net/images/icons/priorities/highest.svg",
+                "name": "Critical or Must Have",
+                "id": "10001"
+              },
+              "issuetype": {
+                "self": "https://marriottcloud.atlassian.net/rest/api/3/issuetype/10000",
+                "id": "10000",
+                "description": "A \"go live\" work item representing incremental customer value.",
+                "iconUrl": "https://marriottcloud.atlassian.net/images/icons/issuetypes/epic.svg",
+                "name": "Epic",
+                "subtask": false,
+                "hierarchyLevel": 1
+              }
+            }
+          }
+        },
+        {
+          "id": "3598960",
+          "self": "https://marriottcloud.atlassian.net/rest/api/3/issueLink/3598960",
+          "type": {
+            "id": "11027",
+            "name": "Dependency",
+            "inward": "Predecessors",
+            "outward": "Successors",
+            "self": "https://marriottcloud.atlassian.net/rest/api/3/issueLinkType/11027"
+          },
+          "inwardIssue": {
+            "id": "2821621",
+            "key": "LYLT-1571",
+            "self": "https://marriottcloud.atlassian.net/rest/api/3/issue/2821621",
+            "fields": {
+              "summary": "Redeem | P1 | SF Integrations | Rules Management: Source Bucket Management",
+              "status": {
+                "self": "https://marriottcloud.atlassian.net/rest/api/3/status/10019",
+                "description": "",
+                "iconUrl": "https://marriottcloud.atlassian.net/images/icons/statuses/generic.png",
+                "name": "Plan",
+                "id": "10019",
+                "statusCategory": {
+                  "self": "https://marriottcloud.atlassian.net/rest/api/3/statuscategory/2",
+                  "id": 2,
+                  "key": "new",
+                  "colorName": "blue-gray",
+                  "name": "To Do"
+                }
+              },
+              "priority": {
+                "self": "https://marriottcloud.atlassian.net/rest/api/3/priority/10001",
+                "iconUrl": "https://marriottcloud.atlassian.net/images/icons/priorities/highest.svg",
+                "name": "Critical or Must Have",
+                "id": "10001"
+              },
+              "issuetype": {
+                "self": "https://marriottcloud.atlassian.net/rest/api/3/issuetype/10000",
+                "id": "10000",
+                "description": "A \"go live\" work item representing incremental customer value.",
+                "iconUrl": "https://marriottcloud.atlassian.net/images/icons/issuetypes/epic.svg",
+                "name": "Epic",
+                "subtask": false,
+                "hierarchyLevel": 1
+              }
+            }
+          }
+        }
+      ],
+      "subtasks": [],
+      "components": [
+        "LYLT-SF-Implement",
+        "SF-Configuration"
+      ],
+      "fixVersions": []
+    },
+    {
+      "key": "LYLT-356",
+      "summary": "*Earn | P1 | CLM Point Source Tracking Management (SF Configuration) Q3 Dependency",
+      "status": "Backlog",
+      "priority": "High or Should Have",
+      "assignee": "Marcus Forbes",
+      "labels": [
+        "earn_replat",
+        "earn_replat_p1"
+      ],
+      "description_text": "Epic Description\nConfigure and manage the source of points earned. Create a flexible and dynamic framework that can handle various sources of points, such as purchases, promotions, referrals, and more\u2014each with its own set of expiration rules.\nAs a Marriott Bonvoy Member,\nI want to track the source of my points for different transaction types, currencies, and promotions, bonuses, all partners (any way that a member can earn a point)\nso that I can see a detailed and accurate record of my points accumulation from various sources.\nEpic Details\nTrack\u00a0earning of the points from different transaction types, currencies, and promotions \nPoint Categories sources: Points Earned from Stay(Bonvoy Points), Vistana Points, MVW Points(Pre/Post Spinoff), Bonus Points:\nActivity Base Point earn = Stay processing earn, MVW Post Spinoff (Continuous earn, redeemable)\n\nLegacy Historical Points = Vistana, MVW Pre Spinoff/MORI (Redeemable Only, no continuous earn)\n\nFixed Base Point earn = All other processing, service recovery, bonus codes etc.  (Manual Earn posted by MI Associate, redeemable) \nAdd bonus points outside of a stay (permission based access)\n\nRemove bonus points outside of a stay (permission based access)\n\n\nVistana Points\nMarriott Bonvoy Points\nMarriott Vacations Worldwide (Pre-Spinoff)\nMarriott Vacations Worldwide (Post-Spinoff)\nFraud Requirement - All Stay Transactions should have visibility into how they were earned (source or Rule ID) and can be easily extracted. \nAssumptions (if applicable)\nConfigurable for changes - expiry model changes, activity type grouping changes or rules change.\n\n\n\nOut-of-Scope\nBusiness Use Cases (The Life of a Point)\nActivity Based Earn\nStay processing earn\n\n\nFixed base point earn\nBonus codes\n\nPromotions\n\n\n",
+      "links": [
+        {
+          "id": "3349554",
+          "self": "https://marriottcloud.atlassian.net/rest/api/3/issueLink/3349554",
+          "type": {
+            "id": "10003",
+            "name": "Relates",
+            "inward": "Relates to",
+            "outward": "Relates to",
+            "self": "https://marriottcloud.atlassian.net/rest/api/3/issueLinkType/10003"
+          },
+          "inwardIssue": {
+            "id": "1911072",
+            "key": "LYLT-96",
+            "self": "https://marriottcloud.atlassian.net/rest/api/3/issue/1911072",
+            "fields": {
+              "summary": "EM15: Earn - point tracking",
+              "status": {
+                "self": "https://marriottcloud.atlassian.net/rest/api/3/status/10003",
+                "description": "The work item is on the Backlog.",
+                "iconUrl": "https://marriottcloud.atlassian.net/images/icons/statuses/generic.png",
+                "name": "Backlog",
+                "id": "10003",
+                "statusCategory": {
+                  "self": "https://marriottcloud.atlassian.net/rest/api/3/statuscategory/2",
+                  "id": 2,
+                  "key": "new",
+                  "colorName": "blue-gray",
+                  "name": "To Do"
+                }
+              },
+              "priority": {
+                "self": "https://marriottcloud.atlassian.net/rest/api/3/priority/10002",
+                "iconUrl": "https://marriottcloud.atlassian.net/images/icons/priorities/high.svg",
+                "name": "High or Should Have",
+                "id": "10002"
+              },
+              "issuetype": {
+                "self": "https://marriottcloud.atlassian.net/rest/api/3/issuetype/10004",
+                "id": "10004",
+                "description": "A \"deployable\" work item representing user goals and acceptance criteria under an Epic.",
+                "iconUrl": "https://marriottcloud.atlassian.net/rest/api/2/universal_avatar/view/type/issuetype/avatar/10315?size=medium",
+                "name": "Story",
+                "subtask": false,
+                "avatarId": 10315,
+                "hierarchyLevel": 0
+              }
+            }
+          }
+        },
+        {
+          "id": "3382289",
+          "self": "https://marriottcloud.atlassian.net/rest/api/3/issueLink/3382289",
+          "type": {
+            "id": "10003",
+            "name": "Relates",
+            "inward": "Relates to",
+            "outward": "Relates to",
+            "self": "https://marriottcloud.atlassian.net/rest/api/3/issueLinkType/10003"
+          },
+          "outwardIssue": {
+            "id": "2495535",
+            "key": "LYLT-504",
+            "self": "https://marriottcloud.atlassian.net/rest/api/3/issue/2495535",
+            "fields": {
+              "summary": "Loyalty Foundations | Loyalty Earned Currencies",
+              "status": {
+                "self": "https://marriottcloud.atlassian.net/rest/api/3/status/10005",
+                "description": "The work item is completed and cannot be reopened.",
+                "iconUrl": "https://marriottcloud.atlassian.net/images/icons/statuses/closed.png",
+                "name": "Done",
+                "id": "10005",
+                "statusCategory": {
+                  "self": "https://marriottcloud.atlassian.net/rest/api/3/statuscategory/3",
+                  "id": 3,
+                  "key": "done",
+                  "colorName": "green",
+                  "name": "Done"
+                }
+              },
+              "priority": {
+                "self": "https://marriottcloud.atlassian.net/rest/api/3/priority/10001",
+                "iconUrl": "https://marriottcloud.atlassian.net/images/icons/priorities/highest.svg",
+                "name": "Critical or Must Have",
+                "id": "10001"
+              },
+              "issuetype": {
+                "self": "https://marriottcloud.atlassian.net/rest/api/3/issuetype/10000",
+                "id": "10000",
+                "description": "A \"go live\" work item representing incremental customer value.",
+                "iconUrl": "https://marriottcloud.atlassian.net/images/icons/issuetypes/epic.svg",
+                "name": "Epic",
+                "subtask": false,
+                "hierarchyLevel": 1
+              }
+            }
+          }
+        },
+        {
+          "id": "3397396",
+          "self": "https://marriottcloud.atlassian.net/rest/api/3/issueLink/3397396",
+          "type": {
+            "id": "10003",
+            "name": "Relates",
+            "inward": "Relates to",
+            "outward": "Relates to",
+            "self": "https://marriottcloud.atlassian.net/rest/api/3/issueLinkType/10003"
+          },
+          "inwardIssue": {
+            "id": "1911059",
+            "key": "LYLT-83",
+            "self": "https://marriottcloud.atlassian.net/rest/api/3/issue/1911059",
+            "fields": {
+              "summary": "EM1-1: Earn - process earn transitions flagging eligibility",
+              "status": {
+                "self": "https://marriottcloud.atlassian.net/rest/api/3/status/10003",
+                "description": "The work item is on the Backlog.",
+                "iconUrl": "https://marriottcloud.atlassian.net/images/icons/statuses/generic.png",
+                "name": "Backlog",
+                "id": "10003",
+                "statusCategory": {
+                  "self": "https://marriottcloud.atlassian.net/rest/api/3/statuscategory/2",
+                  "id": 2,
+                  "key": "new",
+                  "colorName": "blue-gray",
+                  "name": "To Do"
+                }
+              },
+              "priority": {
+                "self": "https://marriottcloud.atlassian.net/rest/api/3/priority/10002",
+                "iconUrl": "https://marriottcloud.atlassian.net/images/icons/priorities/high.svg",
+                "name": "High or Should Have",
+                "id": "10002"
+              },
+              "issuetype": {
+                "self": "https://marriottcloud.atlassian.net/rest/api/3/issuetype/10004",
+                "id": "10004",
+                "description": "A \"deployable\" work item representing user goals and acceptance criteria under an Epic.",
+                "iconUrl": "https://marriottcloud.atlassian.net/rest/api/2/universal_avatar/view/type/issuetype/avatar/10315?size=medium",
+                "name": "Story",
+                "subtask": false,
+                "avatarId": 10315,
+                "hierarchyLevel": 0
+              }
+            }
+          }
+        },
+        {
+          "id": "3397397",
+          "self": "https://marriottcloud.atlassian.net/rest/api/3/issueLink/3397397",
+          "type": {
+            "id": "10003",
+            "name": "Relates",
+            "inward": "Relates to",
+            "outward": "Relates to",
+            "self": "https://marriottcloud.atlassian.net/rest/api/3/issueLinkType/10003"
+          },
+          "inwardIssue": {
+            "id": "1911395",
+            "key": "LYLT-221",
+            "self": "https://marriottcloud.atlassian.net/rest/api/3/issue/1911395",
+            "fields": {
+              "summary": "EOES3: Earn - points purchased and gifted rules",
+              "status": {
+                "self": "https://marriottcloud.atlassian.net/rest/api/3/status/10005",
+                "description": "The work item is completed and cannot be reopened.",
+                "iconUrl": "https://marriottcloud.atlassian.net/images/icons/statuses/closed.png",
+                "name": "Done",
+                "id": "10005",
+                "statusCategory": {
+                  "self": "https://marriottcloud.atlassian.net/rest/api/3/statuscategory/3",
+                  "id": 3,
+                  "key": "done",
+                  "colorName": "green",
+                  "name": "Done"
+                }
+              },
+              "priority": {
+                "self": "https://marriottcloud.atlassian.net/rest/api/3/priority/10002",
+                "iconUrl": "https://marriottcloud.atlassian.net/images/icons/priorities/high.svg",
+                "name": "High or Should Have",
+                "id": "10002"
+              },
+              "issuetype": {
+                "self": "https://marriottcloud.atlassian.net/rest/api/3/issuetype/10004",
+                "id": "10004",
+                "description": "A \"deployable\" work item representing user goals and acceptance criteria under an Epic.",
+                "iconUrl": "https://marriottcloud.atlassian.net/rest/api/2/universal_avatar/view/type/issuetype/avatar/10315?size=medium",
+                "name": "Story",
+                "subtask": false,
+                "avatarId": 10315,
+                "hierarchyLevel": 0
+              }
+            }
+          }
+        },
+        {
+          "id": "3486649",
+          "self": "https://marriottcloud.atlassian.net/rest/api/3/issueLink/3486649",
+          "type": {
+            "id": "10003",
+            "name": "Relates",
+            "inward": "Relates to",
+            "outward": "Relates to",
+            "self": "https://marriottcloud.atlassian.net/rest/api/3/issueLinkType/10003"
+          },
+          "outwardIssue": {
+            "id": "2821621",
+            "key": "LYLT-1571",
+            "self": "https://marriottcloud.atlassian.net/rest/api/3/issue/2821621",
+            "fields": {
+              "summary": "Redeem | P1 | SF Integrations | Rules Management: Source Bucket Management",
+              "status": {
+                "self": "https://marriottcloud.atlassian.net/rest/api/3/status/10019",
+                "description": "",
+                "iconUrl": "https://marriottcloud.atlassian.net/images/icons/statuses/generic.png",
+                "name": "Plan",
+                "id": "10019",
+                "statusCategory": {
+                  "self": "https://marriottcloud.atlassian.net/rest/api/3/statuscategory/2",
+                  "id": 2,
+                  "key": "new",
+                  "colorName": "blue-gray",
+                  "name": "To Do"
+                }
+              },
+              "priority": {
+                "self": "https://marriottcloud.atlassian.net/rest/api/3/priority/10001",
+                "iconUrl": "https://marriottcloud.atlassian.net/images/icons/priorities/highest.svg",
+                "name": "Critical or Must Have",
+                "id": "10001"
+              },
+              "issuetype": {
+                "self": "https://marriottcloud.atlassian.net/rest/api/3/issuetype/10000",
+                "id": "10000",
+                "description": "A \"go live\" work item representing incremental customer value.",
+                "iconUrl": "https://marriottcloud.atlassian.net/images/icons/issuetypes/epic.svg",
+                "name": "Epic",
+                "subtask": false,
+                "hierarchyLevel": 1
+              }
+            }
+          }
+        },
+        {
+          "id": "3598961",
+          "self": "https://marriottcloud.atlassian.net/rest/api/3/issueLink/3598961",
+          "type": {
+            "id": "11027",
+            "name": "Dependency",
+            "inward": "Predecessors",
+            "outward": "Successors",
+            "self": "https://marriottcloud.atlassian.net/rest/api/3/issueLinkType/11027"
+          },
+          "inwardIssue": {
+            "id": "2821621",
+            "key": "LYLT-1571",
+            "self": "https://marriottcloud.atlassian.net/rest/api/3/issue/2821621",
+            "fields": {
+              "summary": "Redeem | P1 | SF Integrations | Rules Management: Source Bucket Management",
+              "status": {
+                "self": "https://marriottcloud.atlassian.net/rest/api/3/status/10019",
+                "description": "",
+                "iconUrl": "https://marriottcloud.atlassian.net/images/icons/statuses/generic.png",
+                "name": "Plan",
+                "id": "10019",
+                "statusCategory": {
+                  "self": "https://marriottcloud.atlassian.net/rest/api/3/statuscategory/2",
+                  "id": 2,
+                  "key": "new",
+                  "colorName": "blue-gray",
+                  "name": "To Do"
+                }
+              },
+              "priority": {
+                "self": "https://marriottcloud.atlassian.net/rest/api/3/priority/10001",
+                "iconUrl": "https://marriottcloud.atlassian.net/images/icons/priorities/highest.svg",
+                "name": "Critical or Must Have",
+                "id": "10001"
+              },
+              "issuetype": {
+                "self": "https://marriottcloud.atlassian.net/rest/api/3/issuetype/10000",
+                "id": "10000",
+                "description": "A \"go live\" work item representing incremental customer value.",
+                "iconUrl": "https://marriottcloud.atlassian.net/images/icons/issuetypes/epic.svg",
+                "name": "Epic",
+                "subtask": false,
+                "hierarchyLevel": 1
+              }
+            }
+          }
+        }
+      ],
+      "subtasks": [],
+      "components": [
+        "LYLT-SF-Implement",
+        "SF-Configuration"
+      ],
+      "fixVersions": []
+    }
+  ],
+  "children": {
+    "\"Epic Link\" = LYLT-355 ORDER BY key": [],
+    "\"Epic Link\" = LYLT-356 ORDER BY key": [
+      {
+        "key": "LYLT-7632",
+        "summary": "Point Source Type Mapping",
+        "status": "Backlog",
+        "type": "Story"
+      }
+    ],
+    "parent = LYLT-355 ORDER BY key": [],
+    "parent = LYLT-356 ORDER BY key": [
+      {
+        "key": "LYLT-7632",
+        "summary": "Point Source Type Mapping",
+        "status": "Backlog",
+        "type": "Story"
+      }
+    ]
+  }
+}

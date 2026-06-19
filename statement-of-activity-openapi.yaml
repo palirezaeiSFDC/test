@@ -1,0 +1,398 @@
+openapi: 3.0.3
+
+info:
+  title: Salesforce Statement of Activity API (Custom)
+  description: >
+    Custom Salesforce endpoint to retrieve Statement of Activity for stay history.
+    This version of API returns detailed stay activity, month-wise balances, and grouped
+    balance summary for a member over a requested duration.
+
+    Scope alignment:
+    - Current implementation scope is stay activity only.
+    - monthlyBalanceList and groupBalanceList are sourced from CLM-owned monthly
+      aggregation data (Member_Monthly_Balance__c model).
+    - groupBalanceList is derived from the same monthly dataset to ensure consistency.
+  version: 2026Q2.0.0
+
+servers:
+  - description: SwaggerHub API Auto Mocking
+    url: https://virtserver.swaggerhub.com/marriott-api/lylt-sf-statement-of-activity/2026Q2.0.0
+  - url: https://{serverUrl}/services/apexrest
+    description: Salesforce Apex REST endpoint
+    variables:
+      serverUrl:
+        default: marriottloyalty--mitest.sandbox.my.salesforce.com
+        description: Salesforce environment domain (My Domain)
+
+security:
+  - cookieAuth: []
+
+tags:
+  - name: Statement of Activity
+    description: APIs for retrieving statement activity, monthly balances, and grouped balance summary
+
+paths:
+  /loyalty/{programName}/sf-statement-of-activity/{memberId}:
+    get:
+      tags:
+        - Statement of Activity
+      summary: Retrieve statement of activity for stay history
+      description: >
+        Returns statement of activity for a member for the requested duration in months.
+
+        Response sections:
+          - accountTransactionSummaryList (stay activity details with nested stay earning details)
+          - monthlyBalanceList (month-wise balances)
+          - groupBalanceList (summary over requested duration)
+
+        monthlyBalanceList and groupBalanceList are sourced from CLM monthly
+        balance aggregation data and returned in one composite response.
+      operationId: getStatementOfActivity
+      parameters:
+        - name: programName
+          in: path
+          required: true
+          description: Loyalty program name used to resolve the correct loyalty context.
+          schema:
+            type: string
+          example: MarriottBonvoy
+        - name: memberId
+          in: path
+          required: true
+          description: Membership number.
+          schema:
+            type: string
+          example: "B7F20C60C359B0C176030DF18873B9604.U1"
+        - name: numberOfMonths
+          in: query
+          required: true
+          description: Number of months requested, counted backward from the request context date.
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 24
+          example: 1
+      responses:
+        '200':
+          description: Statement of activity retrieved successfully.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StatementOfActivityResponse'
+              examples:
+                success:
+                  summary: Successful statement of activity response
+                  value:
+                    memberId: "20982fa3ab9f49ab964a78c6845a1peg.01"
+                    numberOfMonths: 2
+                    accountTransactionSummaryList:
+                      - stayId: "0000010068"
+                        qualifyingActivity: true
+                        postedDate: "2026-03-19"
+                        startDate: "2026-03-01"
+                        propertyName: "DHNYTS"
+                        totalExtraPoints: 1000
+                        totalEarning: 7500
+                        StayEarningDetails:
+                          - totalBasePoints: 5000
+                            earningsDescription: "Base Earning"
+                          - totalElitePoints: 2000
+                            earningsDescription: "50% Elite Membership Bonus"
+                          - earnings: 500
+                            earningsDescription: "Gold Arrival Bonus"
+                          - earnings: 500
+                            earningsDescription: "Rewards Breakfast"
+                        activityType: "STAY"
+                        earningPreference: "Points"
+                        partnerCode: "UA"
+                        partnerAccountNumber: "123456789"
+                    monthlyBalanceList:
+                      - year: 2026
+                        month: 3
+                        monthStartDate: "2026-03-01"
+                        monthEndDate: "2026-03-31"
+                        previousBalance: 276418
+                        pointsEarned: 7000
+                        pointsDeducted: 0
+                        endingBalance: 283418
+                        milesEarned: 0
+                        othersEarned: 0
+                      - year: 2026
+                        month: 2
+                        monthStartDate: "2026-02-01"
+                        monthEndDate: "2026-02-28"
+                        previousBalance: 276418
+                        pointsEarned: 7000
+                        pointsDeducted: 0
+                        endingBalance: 283418
+                        milesEarned: 0
+                        othersEarned: 0
+                    groupBalanceList:
+                      - previousBalance: 276418
+                        pointsEarned: 7000
+                        pointsDeducted: 0
+                        milesEarned: 0
+                        othersEarned: 0
+                        endingBalance: 283418
+                noStaysFound:
+                  summary: Member found with no stays
+                  description: Membership number was found, but no stays were found for the member.
+                  value:
+                    memberId: "20982fa3ab9f49ab964a78c6845a1peg.01"
+                    numberOfMonths: 2
+                    accountTransactionSummaryList: []
+                    monthlyBalanceList: []
+                    groupBalanceList: []
+        '400':
+          $ref: 'https://api.swaggerhub.com/apis/marriott-api/sf-common-schemas/1.0.0#/components/responses/BadRequest400'
+        '401':
+          $ref: 'https://api.swaggerhub.com/apis/marriott-api/sf-common-schemas/1.0.0#/components/responses/Unauthorized401'
+        '403':
+          $ref: 'https://api.swaggerhub.com/apis/marriott-api/sf-common-schemas/1.0.0#/components/responses/Forbidden403'
+        '404':
+          description: Membership number was not found.
+        '500':
+          $ref: 'https://api.swaggerhub.com/apis/marriott-api/sf-common-schemas/1.0.0#/components/responses/InternalServerError500'
+        '503':
+          $ref: 'https://api.swaggerhub.com/apis/marriott-api/sf-common-schemas/1.0.0#/components/responses/ServiceUnavailable503'
+
+components:
+  securitySchemes:
+    cookieAuth:
+      type: apiKey
+      in: cookie
+      name: BrowserId
+
+  schemas:
+    StatementOfActivityRequest:
+      type: object
+      description: Request payload used to retrieve statement activity for a member for a specified number of months.
+      required:
+        - memberId
+        - numberOfMonths
+      properties:
+        memberId:
+          type: string
+          description: Unique member identifier used to retrieve member statement activity.
+          example: "20982fa3ab9f49ab964a78c6845a1peg.01"
+        numberOfMonths:
+          type: integer
+          minimum: 1
+          maximum: 24
+          description: Number of months requested, counted backward from the request context date.
+          example: 6
+
+    StatementOfActivityResponse:
+      type: object
+      description: Composite response containing stay activity, monthly balances, and grouped balance summary.
+      required:
+        - memberId
+        - numberOfMonths
+        - accountTransactionSummaryList
+        - monthlyBalanceList
+        - groupBalanceList
+      properties:
+        memberId:
+          type: string
+          example: "20982fa3ab9f49ab964a78c6845a1peg.01"
+          description: Member identifier for which statement activity was retrieved.
+        numberOfMonths:
+          type: integer
+          example: 6
+          description: Number of months included in the response.
+        accountTransactionSummaryList:
+          type: array
+          description: Detailed stay activity items for requested range. Returns an empty list when no stays are found for the member.
+          items:
+            $ref: '#/components/schemas/AccountTransactionSummary'
+        monthlyBalanceList:
+          type: array
+          description: Month-wise balance records for requested duration.
+          items:
+            $ref: '#/components/schemas/MonthlyBalance'
+        groupBalanceList:
+          type: array
+          description: Aggregated grouped balance summary across full requested duration.
+          items:
+            $ref: '#/components/schemas/GroupBalance'
+
+    AccountTransactionSummary:
+      type: object
+      description: Stay statement item with stay-level summary fields at the root level.
+      allOf:
+        - $ref: '#/components/schemas/StaySummary'
+
+    StaySummary:
+      type: object
+      description: Stay-level summary mapped from Loyalty_Stay__c and related earnings context.
+      properties:
+        stayId:
+          type: string
+          description: Stay identifier from current org stay record (Loyalty_Stay__c.Name).
+          example: "0000010068"
+        qualifyingActivity:
+          type: boolean
+          description: Indicates qualifying stay activity; for stay activity this is true.
+          example: true
+        postedDate:
+          type: string
+          format: date
+          description: Stay posted date from Loyalty_Stay__c.CreatedDate (date portion).
+          example: "2026-03-19"
+        startDate:
+          type: string
+          format: date
+          description: Stay start/check-in date from Loyalty_Stay__c.Checkin_Date__c.
+          example: "2026-03-01"
+        propertyName:
+          type: string
+          description: Property value currently sourced from Loyalty_Stay__c.Property_Code__c.
+          example: "DHNYTS"
+        totalExtraPoints:
+          type: number
+          format: double
+          description: Extra points from Loyalty_Stay__c.Total_Extra_Points__c.
+          example: 1000
+        totalEarning:
+          type: number
+          format: double
+          description: Computed total earning for stay-level record.
+          example: 7500
+        StayEarningDetails:
+          type: array
+          description: Detailed earnings breakdown for the stay.
+          items:
+            $ref: '#/components/schemas/StayEarningDetail'
+        activityType:
+          type: string
+          description: Activity type for this section.
+          example: "STAY"
+        earningPreference:
+          type: string
+          description: Member earning preference from Loyalty_Stay__c.Earning_Preference__c.
+          example: "Points"
+        partnerCode:
+          type: string
+          nullable: true
+          description: Partner code from related journal partner (TransactionJournal.Partner.Partner_Id__c), when present.
+          example: "UA"
+        partnerAccountNumber:
+          type: string
+          nullable: true
+          description: Partner account number from related journal (TransactionJournal.Partner_Account_Number__c), when present.
+          example: "123456789"
+
+    StayEarningDetail:
+      type: object
+      description: One earning detail line for the stay.
+      properties:
+        totalBasePoints:
+          type: number
+          format: double
+          description: Base points value for base earning detail lines.
+          example: 5000
+        totalElitePoints:
+          type: number
+          format: double
+          description: Elite points value for elite bonus earning detail lines.
+          example: 2000
+        earnings:
+          type: number
+          format: double
+          description: Generic earnings value for non-base/non-elite earning detail lines.
+          example: 500
+        earningsDescription:
+          type: string
+          description: Human-readable description for the earning detail line.
+          example: "Base Earning"
+
+    MonthlyBalance:
+      type: object
+      description: Month-wise balance record for requested statement range.
+      properties:
+        year:
+          type: integer
+          description: Calendar year for balance row.
+          example: 2026
+        month:
+          type: integer
+          minimum: 1
+          maximum: 12
+          description: Calendar month for balance row.
+          example: 3
+        monthStartDate:
+          type: string
+          format: date
+          description: Start date of represented month.
+          example: "2026-03-01"
+        monthEndDate:
+          type: string
+          format: date
+          description: End date of represented month.
+          example: "2026-03-31"
+        previousBalance:
+          type: number
+          format: double
+          description: Opening balance carried into month.
+          example: 276418
+        pointsEarned:
+          type: number
+          format: double
+          description: Total points earned during month.
+          example: 7000
+        pointsDeducted:
+          type: number
+          format: double
+          description: Total points deducted/reversed during month.
+          example: 0
+        endingBalance:
+          type: number
+          format: double
+          description: Closing balance after monthly activity.
+          example: 283418
+        milesEarned:
+          type: number
+          format: double
+          description: Total miles earned during month where applicable.
+          example: 0
+        othersEarned:
+          type: number
+          format: double
+          description: Total earned value for other categories where applicable.
+          example: 0
+
+    GroupBalance:
+      type: object
+      description: Grouped balance summary aggregated across the requested period.
+      properties:
+        previousBalance:
+          type: number
+          format: double
+          description: Opening balance before the requested period.
+          example: 276418
+        pointsEarned:
+          type: number
+          format: double
+          description: Sum of points earned across the requested period.
+          example: 7000
+        pointsDeducted:
+          type: number
+          format: double
+          description: Sum of points deducted across the requested period.
+          example: 0
+        milesEarned:
+          type: number
+          format: double
+          description: Sum of miles earned across the requested period.
+          example: 0
+        othersEarned:
+          type: number
+          format: double
+          description: Sum of other earned values across the requested period.
+          example: 0
+        endingBalance:
+          type: number
+          format: double
+          description: Closing balance at end of requested period.
+          example: 283418
+

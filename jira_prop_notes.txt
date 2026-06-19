@@ -1,0 +1,748 @@
+===== LYLT-16243: QA_Perf Performance issue for the Account Enrollment Object - PG Transformation =====
+
+DESCRIPTION:
+
+During Testing data in PostgreSQL database for the Account Enrollment SF object, it was observed that there is performance issue for the PG Database for simple queries like Distinct
+
+
+
+COMMENTS:
+
+===== LYLT-15197: Prepare postgres pro_info create table script =====
+
+DESCRIPTION:
+
+Prepare postgres pro_info create table script as per the available salesforceFields
+
+Salesforce Fields
+
+
+
+
+Property Code
+
+
+
+
+Abbreviated Name
+
+
+
+
+All Inclusive
+
+
+
+
+Brand
+
+
+
+
+Category Change Date
+
+
+
+
+Convention Center
+
+
+
+
+Currency Code
+
+
+
+
+Enrollment source code
+
+
+
+
+GMT OffSet
+
+
+
+
+GMT
+
+
+
+
+Has Gift Shop
+
+
+
+
+Has Lounge
+
+
+
+
+Has Onsite Spa
+
+
+
+
+Is Lounge Open
+
+
+
+
+Loyalty Program
+
+
+
+
+Marriott Rewards Eligibility
+
+
+
+
+
+
+
+
+
+
+Marriott Rewards End Date
+
+
+
+
+Marriott Rewards Start Date
+
+
+
+
+Number of Lounges
+
+
+
+
+PMS Source
+
+
+
+
+PMS Start date
+
+
+
+
+PMS
+
+
+
+
+Prop Time diff
+
+
+
+
+Property Category
+
+
+
+
+Property Close Date
+
+
+
+
+Property Old Category
+
+
+
+
+Property Open Date
+
+
+
+
+Property Status
+
+
+
+
+Re Rev Threshold
+
+
+
+
+Region
+
+
+
+
+Resort
+
+
+
+
+SFA Enabled Date
+
+
+
+
+SFA Enabled
+
+
+
+
+Stay High Dollar
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+COMMENTS:
+
+===== LYLT-6521: CLM Design | Document SObject API Endpoint for Account (Property) Object for Creation/Update on Swagger =====
+
+DESCRIPTION:
+
+Story Description
+As an Integration Developer, I want to document the Salesforce Account SObject API endpoints in an OpenAPI (Swagger) specification, so that it's easy for me and other developers to understand, consume, and test the API's create and update operations.
+Assumptions 
+Key assumptions:
+SF CLM is not a system of record for Property data. Business users can’t create Property Data in CLM. TIP will create property data in CLM through Integration.
+
+
+Out of Scope:
+Salesforce Connected App and Integration User Permissions
+
+TIP Connectivity Configuration to Salesforce 
+
+
+Dependencies
+Account object - Property fields configuration in Salesforce is complete -  
+
+
+
+
+
+COMMENTS:
+
+-- Karthi.Subramanian
+
+   This is the design user story to create the Swagger Hub API documentation for Property data update. I added the fields that will be used as part this user story to be updated in Property data. Please review and approve. Thanks! FYI:    
+
+
+
+-- Ben Hain
+
+ I have reviewed from a functional perspective. Please include  so he is also aware moving forward on all your stories.  I have reviewed from a functional perspective.   - Can you guys review really quick and let us know here if anything is missing. This should be the output of the mapping exercise.
+CC:     
+
+
+
+-- Karthi.Subramanian
+
+ Please review and approve this user story. This user story is for creating Swagger API documentation for sObject API for property data on CLM. FYI:    
+
+
+
+-- Ben Hain
+
+ Approved.
+
+
+
+-- Karthi.Subramanian
+
+   Here API Documentation for upsert opertaion on Property. https://app.swaggerhub.com/apis/marriott-api/lylt-sf-property/2026Q1.1.0. Please check and let me know of any questions. FYI:   
+
+
+
+-- Mainak.Mallick
+
+Happy Path with positive Status codes are successfully verified for Upsert Operation on Property records in SFQA.  Can you please confirm if that is okay or we have to verify Other error codes as well?
+Assigning this for review to  .
+
+
+
+-- Karthi.Subramanian
+
+ Please test both update and insert scenario for both positive and negative scenario. FYI    
+
+
+
+-- Mainak.Mallick
+
+Positive and all the 4XX Codes are verified successfully. Assigning this to  for review.
+Note: Standard SObject API, simulating a 500 Internal Server Error is not feasible via standard payload manipulation.as it will require a a bulk payload that exceeds Salesforce's max limits so we have verified negative via 4XX Codes.
+cc:  
+
+
+
+-- Aasima.Ameen
+
+  The user story has completed testing and is ready for your Review. Test evidence recording is linked to the user story
+
+
+
+-- Ben Hain
+
+ Reviewed and moving to done. 
+
+
+
+===== LYLT-796: Property Fields Configuration =====
+
+DESCRIPTION:
+
+Story Description
+As a System Admin, I want to be able to define Property data model in Salesforce CLM so that I can drive Property related processes and functionality across the CLM processes.
+In Scope
+All systems will be using the standardized data model for Property.
+
+Record page for property should follow the fields visibility description below.
+
+Validation Rules to be added for  - Billing address, as Marriott required it to be mandatory. 
+
+Validation rules should be added for all Checkboxes fields, as Marriott required as it mandatory on record creation.
+
+Create a list view for property record type to all users.
+
+
+Dependencies
+Upstream and Downstream system confirmation for leveraging the Property data model.
+
+
+
+
+
+COMMENTS:
+
+-- kelsey.tobin
+
+ and  what else do we need to move this story to “to do”? 
+
+
+
+-- nazneen.nazim
+
+ to work with data mapping team to get details
+
+
+
+-- Kawtar.ElRhaoulaji
+
+ can you please confirm if we will need to store the following fields in Salesforce to drive Properties ?
+MARSHA_CODE
+
+PROP_REGION_ID
+
+PROPERTY_STATUS
+
+PROP_NAME
+
+ABBREV_NAME
+
+PROP_ADDR_LINE_1
+
+PROP_ADDR_LINE_2
+
+PROP_ZIP_CODE
+
+PROP_CITY
+
+PROP_STATE
+
+PROP_COUNTRY
+
+RESORT_YN
+
+PMS_FLAG
+
+START_DATE
+
+START_TIME
+
+OPEN_DATE
+
+CLOSE_DATE
+
+DATE_AMENDED
+
+CHANGE_CODE
+
+CHANGE_REASON
+
+BRAND
+
+
+
+FYI  ,  ,  ,  
+
+
+
+-- Dalia-Mateel.Jabr
+
+ , yes, those are correct based on the analysis on 
+cc.  ,  ,  ,  
+
+
+
+-- Kawtar.ElRhaoulaji
+
+ Thank you for the response.
+
+
+
+-- Kawtar.ElRhaoulaji
+
+Hi  
+I have added the 3 fields AllInclusiveFlag, ResortFlag and ConventionCenterFlag to the table, Boolean - Checkbox in CLM.
+
+
+
+-- kapil.dev
+
+ : Please include the logic of enrollment source ( )as an AC in this story. This is the request from BH. Should include the below
+New Property is added to PC and sent to CLM
+
+CLM identifies that it is a new property and needs a Enrollment Source Code created based on todays logic. 
+
+CLM then passes the Enrollment Source Code to the Property Object, upstream and downstream if necessary  for storage and association
+
+
+CC    
+
+
+
+-- Ben Hain
+
+ - Reviewed and approved. We typically only move the Epics to plan on the MI side, once you refine with your dev team you can move the story to Plan  
+Thank you - FYI for Brie on Foundational Items.
+    
+
+
+
+-- Kawtar.ElRhaoulaji
+
+ Thank you,
+
+
+
+-- Aasima.Ameen
+
+ Are we also testing the page layout as part of this user story, meaning do we know if the fields are all in one section or there will be multiple sections and what fields are included in compact layout
+ 
+
+
+
+-- Kawtar.ElRhaoulaji
+
+ For now we can have all fields in one section, if there is a requirement for how fields will be grouped and viewed on page layout, I’ll create another Story for it. Thank you for you question.
+
+
+
+-- Mohammed.Sami
+
+ ,Validation rules cant be added to a required condition for checkbox fields, because by default a checkbox already has a value - either checked or unchecked.
+cc  |  
+
+
+
+-- Mohammed.Sami
+
+, As per the latest feedback, we will make the fields required on the Lightning record page instead of in the field definition.
+cc: 
+
+
+
+-- Chris.JosephMarri
+
+As confirmed by TA , record type selection page will be visible while creating Property Account where Person and Partner record types can also be seen. But due to FLS limitation, LSA user won’t be able to create Partner or Person Account.
+cc:    
+
+
+
+-- Abhishek.Dey1
+
+ Yes, I confirm this is standard Salesforce platform behaviour and working as expected. Since LSA persona has access to all 3 record types (Person Account, Partner and Property) the options will be available during creation.
+
+
+
+-- Chris.JosephMarri
+
+Hi , story has been marked as ‘QA Completed.’ Thanks!
+
+
+
+-- Aasima.Ameen
+
+  The user story has completed testing and is ready for your Review. Test evidence recording is linked to the user story 
+
+
+
+===== LYLT-3499: MI_Data_QA: Account Object Missing 3 Feilds in MI Dev and has additional Feilds than SF Data Disctionary =====
+
+DESCRIPTION:
+
+When Compared Account attributes of SF Data Dictionary with the MI Dev env attributes
+Below 3 Attributes are missing in MI Dev
+Object Access Level
+
+
+Owner Alias
+
+
+Compare Site
+
+
+
+Below are the additional fields that are present in MI Dev when compared with SF Data dictionary
+Additional Feilds
+
+
+Abbreviated Name
+
+
+Salutation
+
+
+First Name
+
+
+Last Name
+
+
+Middle Name
+
+
+Suffix
+
+
+All Inclusive
+
+
+Brand
+
+
+Category Change Date
+
+
+Convention Center
+
+
+Currency Code
+
+
+Enrollment source code
+
+
+GMT
+
+
+GMT OffSet
+
+
+Has Gift Shop
+
+
+Has Lounge
+
+
+Has Onsite Spa
+
+
+Is Lounge Open
+
+
+Loyalty Program
+
+
+Marriott Rewards Eligibility
+
+
+Marriott Rewards End Date
+
+
+Marriott Rewards Start Date
+
+
+Number of Lounges
+
+
+PMS
+
+
+PMS Source
+
+
+PMS Start date
+
+
+Prop Time diff
+
+
+Property Category
+
+
+Property Close Date
+
+
+Property Code
+
+
+Property Old Category
+
+
+Property Open Date
+
+
+Property Status
+
+
+Re Rev Threshold
+
+
+Region
+
+
+Resort
+
+
+SFA Enabled
+
+
+SFA Enabled Date
+
+
+Stay High Dollar
+
+
+
+
+
+
+COMMENTS:
+
+===== LYLT-9099: Discrepancy in SF object - Account -Data_Type&Length  in between DB2 to PG tables =====
+
+DESCRIPTION:
+
+During the validation of Count from DB2 to PG Table for Account SF Object, it was observed that there Data_Type & Length mismatch for the tables HXTACCTMASTER,HXTGROUPIDHXTPARTNER,HXTPROPINFO.
+Subtask: [LYLT-7329] QA_Data Type & Length Validation - Jira
+
+
+
+COMMENTS:
+
+-- Vanga.Srinivasreddy
+
+
+
+
+
+-- Lucky.Singh
+
+Hi  
+As we discussed on the call with Beaula, SmallInt and Interger datatypes from DB2 and Int2 and Int4 datatypes from Postgres are equal. Please verify.
+Thanks 
+CC:  
+
+
+
+-- Vanga.Srinivasreddy
+
+Started working on this story
+
+
+
+-- Vanga.Srinivasreddy
+
+We have retested DB2 to PG and now it i s matching.
+
+
+
+===== LYLT-1309: Non-Core Lodging Properties Fields Definition =====
+
+DESCRIPTION:
+
+Story Description
+As a Loyalty Admin,
+I want to Earn on my non core lodging property Stay and Activities
+Assumptions 
+Non core lodging - HVMB, RCYC - will be identified in property table in CLM
+
+Non core lodging Transaction activities will have Property charge code and Product code populated
+
+Non core lodging activities will be earn directly to member, calculation handled by the partner
+
+
+Dependencies
+Property setup -   
+
+
+
+
+
+COMMENTS:
+
+-- Kawtar.ElRhaoulaji
+
+Confirmed by Ben H -Non Core Lodging will not be stored in CLM Property data model 
+
+

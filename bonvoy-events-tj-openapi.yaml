@@ -1,0 +1,887 @@
+openapi: 3.0.3
+
+info:
+  title: Marriott Transaction Journal API (Custom)
+  description: >
+    Custom Salesforce Apex REST endpoint for non-stay Transaction Journal processing.
+
+    The endpoint is **subtype-agnostic** — `JournalSubType` on each TJ drives processor
+    selection inside CLM. This version of the contract (`2026Q2.1.0`) defines the
+    request shape for the **Events** subtype (LYLT-363). Future subtypes (e.g. eBonus)
+    reuse the same endpoint, response envelope, and processing scaffolding; their
+    request payloads will be published as additional schemas in subsequent versions.
+
+    This is a custom Apex REST endpoint (not the OOTB CLM Connect API), introduced
+    to support cap-enforcement messaging, overage amounts in error responses, and
+    split-processing logic that the OOTB Connect API does not surface.
+
+    Key design decisions (apply to all subtypes):
+    - PII fields (member email, name, preparer/approver details) are excluded from this payload.
+    - Up to 2 Transaction Journals may be submitted per request (used by Events for split earn).
+    - All standard TransactionJournal field names follow Salesforce API naming (PascalCase).
+    - Custom field API names follow the Salesforce `__c` suffix convention.
+    - The Events processing directive is `TJ_Processing_Directive__c`. `SINGLE`
+      applies full Event earning logic; `SPLIT` applies 50/50 earning logic.
+    - Award type (Points/Miles) is read from `LoyaltyProgramMember.EarningPrefCode__c`
+      on the member profile. Q2 supports Points only; Miles processing is deferred to Q3.
+    - Promotion Engine integration is out of Q2 scope. When TIP sends
+      `Points_Multiplier__c`, CLM uses that numeric value directly for
+      DBPT/TRPT-style multiplier calculations.
+    - EQN is awarded to the year of `ActivityDate` (agreed with TIP).
+
+    Subtype-specific notes (Events, this version):
+    - Revenue values are NOT split — both TJs carry the full qualifying revenue;
+      CLM applies the 50/50 division internally during points and EQN calculation.
+    - Event qualifying spend does NOT count toward Ambassador Elite $20k requirement;
+      Events must not credit event revenue to the `Spend` currency.
+    - Event earning rates and caps are configured at the Loyalty Program level.
+      CLM reads the configured values during Event TJ processing.
+    - Base points cap: TJ is created; points are capped by the Loyalty Rule Engine.
+      TJ is processed and the fixed cap warning is returned in `ErrorDescription`.
+    - Total points cap: evaluated by CLM after the Loyalty Process runs. If exceeded,
+      the request is rolled back and an error message with `overage` is returned.
+  version: 2026Q2.1.0
+
+servers:
+  - description: SwaggerHub API Auto Mocking
+    url: https://virtserver.swaggerhub.com/marriott-api/MarriottTransactionJournalCustomAPI/2026Q2.1.0
+  - url: https://{serverUrl}/services/apexrest/loyalty/{programName}/lyt/sf-transaction-journals
+    description: Salesforce Custom Apex REST Endpoint
+    variables:
+      serverUrl:
+        default: marriottloyalty--teamdev.sandbox.my.salesforce.com
+        description: Salesforce environment domain (My Domain)
+      programName:
+        default: MarriottBonvoy
+        description: Loyalty program name
+
+security:
+  - bearerAuth: []
+  - oAuth2:
+      - api
+
+tags:
+  - name: Transaction Journal
+    description: >
+      Submit non-stay Transaction Journals. Subtype is selected via `JournalSubType` on
+      each TJ (Events in Q2; additional subtypes added in subsequent versions).
+
+x-program-level-event-earning-configuration:
+  description: >
+    Event earning rates and caps are configured at the Loyalty Program level.
+    CLM reads these values during Event TJ processing and applies them consistently
+    across single-member and split-member scenarios.
+  parameters:
+    EVENT_BASE_POINTS_PER_DOLLAR:
+      initialValue: 2
+      type: number
+      description: Base earning rate for qualifying Event revenue.
+    EVENT_EQN_ROOM_RATIO:
+      initialValue: 20
+      type: number
+      description: Number of actualized rooms required to earn 1 EQN.
+    EVENT_SINGLE_BASE_POINTS_CAP:
+      initialValue: 60000
+      type: number
+      description: Maximum base points for a single-member Event.
+    EVENT_SPLIT_BASE_POINTS_CAP:
+      initialValue: 30000
+      type: number
+      description: Maximum base points per member for split Events.
+    EVENT_TOTAL_POINTS_CAP:
+      initialValue: 200000
+      type: number
+      description: Maximum total Event points after promoted base, elite bonus, and purchase bonus.
+    EVENT_SINGLE_EQN_CAP:
+      initialValue: 20
+      type: number
+      description: Maximum EQN for a single-member Event.
+    EVENT_SPLIT_EQN_CAP:
+      initialValue: 10
+      type: number
+      description: Maximum EQN per member for split Events.
+
+paths:
+  /sf-transaction-journals:
+    post:
+      tags:
+        - Transaction Journal
+      summary: Submit one or more non-stay Transaction Journals
+      description: >
+        Submits one or two Transaction Journals (TJs) to CLM. The processor invoked
+        for each TJ is selected by its `JournalSubType` value. Below describes the
+        flow for the **Events** subtype as defined in this contract version.
+
+        Processing model (request-level all-or-none transaction):
+          1. Required-field validation
+          2. Resolve `membershipNumber` to LoyaltyProgramMember; check active status
+          3. Read `LoyaltyProgramMember.EarningPrefCode__c` (Q2 = Points only)
+          4. Insert TJ in `Pending`
+          5. Trigger Loyalty Process — Rule Engine computes:
+               * Base points using `EVENT_BASE_POINTS_PER_DOLLAR`
+               * Single or split allocation using `TJ_Processing_Directive__c`
+               * Configured base cap using `EVENT_SINGLE_BASE_POINTS_CAP` or
+                 `EVENT_SPLIT_BASE_POINTS_CAP`
+               * Direct points multiplier from `Points_Multiplier__c`, when provided,
+                 on capped base
+               * Elite bonus on capped base (NOT on promoted points)
+               * EQN using `EVENT_EQN_ROOM_RATIO`, capped by `EVENT_SINGLE_EQN_CAP`
+                 or `EVENT_SPLIT_EQN_CAP`, awarded to the year of `ActivityDate`
+          6. Apex post-process: total points = promoted base + elite bonus + purchase bonus.
+             If total exceeds `EVENT_TOTAL_POINTS_CAP` → roll back the request and
+             return error with `overage`.
+          7. Otherwise leave TJ as `Processed`; respond with `Id`, `Name`, `Status`,
+             and `ErrorDescription`.
+
+        Split earn: TIP submits both TJs in a single request. Revenue values are NOT split —
+        each TJ carries the full qualifying revenue. CLM applies the 50/50 split internally
+        during points and EQN calculation when `TJ_Processing_Directive__c = SPLIT`.
+
+        EQN rounding for split: round HALF_UP — if member's share is ≥ 0.5 round up, else round down.
+
+        Ambassador Elite spend: Event qualifying spend does NOT count toward Ambassador Elite
+        $20k requirement. CLM must not credit Event revenue to the `Spend` currency.
+      operationId: submitTransactionJournals
+      requestBody:
+        required: true
+        description: Wrapper containing one or two Transaction Journal entries.
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TransactionJournalBatchRequest'
+            examples:
+              singleMemberPoints:
+                summary: "Single member – points earn, no promotion (Persona B: Gold, $70k, 25 rooms)"
+                description: >
+                  $70,000 qualifying spend → base points calculated using
+                  `EVENT_BASE_POINTS_PER_DOLLAR`, capped using
+                  `EVENT_SINGLE_BASE_POINTS_CAP`.
+                  Gold 25% elite bonus = 15,000. EQN uses `EVENT_EQN_ROOM_RATIO`.
+                  Total = 75,000 points. Base cap warning is returned in ErrorDescription.
+                value:
+                  transactionJournals:
+                    - membershipNumber: "20982fa3ab9f49ab964a78c6845a1peg.01"
+                      JournalType: "Accrual"
+                      JournalSubType: "Events"
+                      ExternalTransactionId: "QN-2026-00438"
+                      Establishment: "WASDC"
+                      StartDate: "2026-05-12"
+                      EndDate: "2026-05-14"
+                      ActivityDate: "2026-05-14"
+                      BookingDate: "2026-02-01"
+                      Total_Guest_Rooms__c: 25
+                      TransactionAmount: 70000
+                      Quantity: 0
+                      Quantity_Unit__c: "Points"
+                      Associate_Id__c: "EID123456"
+                      Notes__c: "Annual leadership conference"
+                      TJ_Processing_Directive__c: "SINGLE"
+                      Points_Multiplier__c: 1
+                      status: "Pending"
+                      Additional_Details__c:
+                        organizationType: "CP"
+                        eventType: "MA"
+                        eventName: "Annual Leadership Meeting"
+                        paymentType: "DB"
+                        averageDailyRate: 299
+                        meetingSpace: 30000
+                        catering: 28000
+                        additional: 12000
+                        qualifying: 70000
+              singleMemberWithTriplePoints:
+                summary: "Single member – Gold Elite, TRPT, purchase bonus (Persona E) → 200k error"
+                description: >
+                  $70,000 → capped base using `EVENT_SINGLE_BASE_POINTS_CAP`, then
+                  × 3 (TRPT) + elite bonus + 10,000 purchase bonus.
+                  Exceeds `EVENT_TOTAL_POINTS_CAP` by 5,000 → error returned,
+                  request rolled back, no TJ retained.
+                value:
+                  transactionJournals:
+                    - membershipNumber: "20982fa3ab9f49ab964a78c6845a1peg.02"
+                      JournalType: "Accrual"
+                      JournalSubType: "Events"
+                      ExternalTransactionId: "QN-2026-00439"
+                      Establishment: "WASDC"
+                      StartDate: "2026-06-01"
+                      EndDate: "2026-06-03"
+                      ActivityDate: "2026-06-03"
+                      BookingDate: "2026-03-15"
+                      Total_Guest_Rooms__c: 25
+                      TransactionAmount: 70000
+                      Quantity: 10000
+                      Quantity_Unit__c: "Points"
+                      Associate_Id__c: "EID789012"
+                      Notes__c: ""
+                      TJ_Processing_Directive__c: "SINGLE"
+                      Points_Multiplier__c: 3
+                      status: "Pending"
+                      Additional_Details__c:
+                        organizationType: "CP"
+                        eventType: "CO"
+                        eventName: "Global Sales Convention"
+                        paymentType: "DB"
+                        promotionCode: "TRPT"
+                        averageDailyRate: 320
+                        meetingSpace: 30000
+                        catering: 28000
+                        additional: 12000
+                        qualifying: 70000
+              singleMemberMiles:
+                summary: Single member – miles earn with airline (Q3 — preview only)
+                value:
+                  transactionJournals:
+                    - membershipNumber: "20982fa3ab9f49ab964a78c6845a1peg.03"
+                      JournalType: "Accrual"
+                      JournalSubType: "Events"
+                      ExternalTransactionId: "QN-2026-00440"
+                      Establishment: "WASDC"
+                      StartDate: "2026-06-01"
+                      EndDate: "2026-06-03"
+                      ActivityDate: "2026-06-03"
+                      BookingDate: "2026-03-15"
+                      Total_Guest_Rooms__c: 50
+                      TransactionAmount: 48000
+                      Quantity: 0
+                      Quantity_Unit__c: "Points"
+                      PartnerName: "United Airlines"
+                      Partner_Account_Number__c: "UA-987654321"
+                      Associate_Id__c: "EID789012"
+                      Notes__c: ""
+                      TJ_Processing_Directive__c: "SINGLE"
+                      Points_Multiplier__c: 1
+                      status: "Pending"
+                      Additional_Details__c:
+                        organizationType: "CP"
+                        eventType: "CO"
+                        eventName: "Global Sales Convention"
+                        paymentType: "DB"
+                        averageDailyRate: 320
+                        meetingSpace: 20000
+                        catering: 18000
+                        additional: 10000
+                        qualifying: 48000
+              splitTwoMembers:
+                summary: "Split earn – two TJs, 50/50 (Persona D: Titanium D.1 + Silver D.2)"
+                description: >
+                  $200,000 qualifying spend, 50 actualized rooms.
+                  TJ_Processing_Directive__c = SPLIT on both TJs.
+                  CLM calculates raw base using `EVENT_BASE_POINTS_PER_DOLLAR`, halves it,
+                  then applies `EVENT_SPLIT_BASE_POINTS_CAP` per member.
+                  EQN uses `EVENT_EQN_ROOM_RATIO`; split EQN is rounded HALF_UP per member.
+                  D.1 Titanium (75%): 30,000 base + 22,500 elite = 52,500 pts, 1 EQN. Cap warning returned.
+                  D.2 Silver  (10%): 30,000 base +  3,000 elite = 33,000 pts, 1 EQN. Cap warning returned.
+                  Both TJs carry the full TransactionAmount; CLM applies the 50/50 internally.
+                value:
+                  transactionJournals:
+                    - membershipNumber: "20982fa3ab9f49ab964a78c6845a1peg.04"
+                      JournalType: "Accrual"
+                      JournalSubType: "Events"
+                      ExternalTransactionId: "QN-2026-00441"
+                      Establishment: "ATLMA"
+                      StartDate: "2026-07-10"
+                      EndDate: "2026-07-14"
+                      ActivityDate: "2026-07-14"
+                      BookingDate: "2026-04-01"
+                      Total_Guest_Rooms__c: 50
+                      TransactionAmount: 200000
+                      Quantity: 0
+                      Quantity_Unit__c: "Points"
+                      Associate_Id__c: "EID112233"
+                      Notes__c: "Primary member – split 50/50"
+                      TJ_Processing_Directive__c: "SPLIT"
+                      Points_Multiplier__c: 1
+                      status: "Pending"
+                      Additional_Details__c:
+                        organizationType: "CP"
+                        eventType: "CO"
+                        eventName: "National Convention 2026"
+                        paymentType: "DB"
+                        averageDailyRate: 350
+                        meetingSpace: 90000
+                        catering: 80000
+                        additional: 30000
+                        qualifying: 200000
+                    - membershipNumber: "20982fa3ab9f49ab964a78c6845a1peg.05"
+                      JournalType: "Accrual"
+                      JournalSubType: "Events"
+                      ExternalTransactionId: "QN-2026-00441"
+                      Establishment: "ATLMA"
+                      StartDate: "2026-07-10"
+                      EndDate: "2026-07-14"
+                      ActivityDate: "2026-07-14"
+                      BookingDate: "2026-04-01"
+                      Total_Guest_Rooms__c: 50
+                      TransactionAmount: 200000
+                      Quantity: 0
+                      Quantity_Unit__c: "Points"
+                      Associate_Id__c: "EID112233"
+                      Notes__c: "Secondary member – split 50/50"
+                      TJ_Processing_Directive__c: "SPLIT"
+                      Points_Multiplier__c: 1
+                      status: "Pending"
+                      Additional_Details__c:
+                        organizationType: "CP"
+                        eventType: "CO"
+                        eventName: "National Convention 2026"
+                        paymentType: "DB"
+                        averageDailyRate: 350
+                        meetingSpace: 90000
+                        catering: 80000
+                        additional: 30000
+                        qualifying: 200000
+      responses:
+        '200':
+          description: >
+            Request processed. Each TJ result includes `Id`, `Name`, `Status`, and
+            `ErrorDescription`. A 200 is returned even when a TJ is rejected due to the
+            configured total points cap — the per-TJ `Status` field distinguishes
+            success from rejection.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TransactionJournalBatchResponse'
+              examples:
+                singleSuccess:
+                  summary: Single TJ – processed successfully, no caps hit
+                  value:
+                    transactionJournals:
+                      - Id: "0lVDo000000CaXXMA0"
+                        Name: "1234567890"
+                        Status: "Processed"
+                        ErrorDescription: null
+                baseCapHit:
+                  summary: Single TJ – base points capped by configured single cap (Persona B)
+                  description: >
+                    $70,000 qualifying spend → base points calculated using
+                    `EVENT_BASE_POINTS_PER_DOLLAR`.
+                    Capped using `EVENT_SINGLE_BASE_POINTS_CAP`. 25% Gold elite bonus = 15,000.
+                    Total = 75,000 using the initial configured values.
+                    TJ created, warning returned.
+                  value:
+                    transactionJournals:
+                      - Id: "0lVDo000000CaYYMA0"
+                        Name: "1234567891"
+                        Status: "Processed"
+                        ErrorDescription: "Reward is over max allowed, so max will be awarded."
+                totalCapExceeded:
+                  summary: Single TJ – rejected, configured total points cap exceeded (Persona E)
+                  description: >
+                    Configured single base cap × 3 (TRPT) + elite bonus + purchase points
+                    exceeds `EVENT_TOTAL_POINTS_CAP`. Request rolled back; no TJ retained.
+                  value:
+                    transactionJournals:
+                      - Id: null
+                        Name: null
+                        Status: "Error"
+                        ErrorDescription: "You must correct the following error(s) before proceeding: Earned Points plus Purchased Points cannot exceed 200,000 points, please adjust Purchased Point Value. Overage: 5000"
+                splitSuccess:
+                  summary: Two TJs – split earn processed (Persona D)
+                  value:
+                    transactionJournals:
+                      - Id: "0lVDo000000CaZZMA0"
+                        Name: "1234567890"
+                        Status: "Processed"
+                        ErrorDescription: "Reward is over max allowed, so max will be awarded."
+                      - Id: "0lVDo000000Ca00MA0"
+                        Name: "1234567891"
+                        Status: "Processed"
+                        ErrorDescription: null
+        '400':
+          $ref: 'https://api.swaggerhub.com/apis/marriott-api/sf-common-schemas/1.0.0#/components/responses/BadRequest400'
+        '401':
+          $ref: 'https://api.swaggerhub.com/apis/marriott-api/sf-common-schemas/1.0.0#/components/responses/Unauthorized401'
+        '403':
+          $ref: 'https://api.swaggerhub.com/apis/marriott-api/sf-common-schemas/1.0.0#/components/responses/Forbidden403'
+        '404':
+          $ref: 'https://api.swaggerhub.com/apis/marriott-api/sf-common-schemas/1.0.0#/components/responses/NotFound404'
+        '500':
+          $ref: 'https://api.swaggerhub.com/apis/marriott-api/sf-common-schemas/1.0.0#/components/responses/InternalServerError500'
+        '503':
+          $ref: 'https://api.swaggerhub.com/apis/marriott-api/sf-common-schemas/1.0.0#/components/responses/ServiceUnavailable503'
+
+components:
+  securitySchemes:
+    bearerAuth:
+      $ref: 'https://api.swaggerhub.com/apis/marriott-api/sf-common-schemas/1.0.0#/components/securitySchemes/bearerAuth'
+    oAuth2:
+      $ref: 'https://api.swaggerhub.com/apis/marriott-api/sf-common-schemas/1.0.0#/components/securitySchemes/oAuth2'
+
+  schemas:
+
+    TransactionJournalBatchRequest:
+      type: object
+      description: >
+        Wrapper for one or two Transaction Journal entries. Two TJs are submitted
+        when a single earn is split between two members (Events subtype, 50/50 split).
+      required:
+        - transactionJournals
+      properties:
+        transactionJournals:
+          type: array
+          minItems: 1
+          maxItems: 2
+          description: List of Transaction Journal entries. Maximum 2 per request.
+          items:
+            $ref: '#/components/schemas/TransactionJournalRequest'
+
+    TransactionJournalRequest:
+      type: object
+      description: >
+        A single Transaction Journal entry. The field set below describes the
+        **Events** subtype payload (Q2 scope). Future subtypes (e.g. eBonus) will
+        publish their own variant of this schema; the shared envelope remains
+        identical (`membershipNumber`, `JournalType`, `JournalSubType`, dates,
+        `Status`, `Additional_Details__c`).
+
+        Field names follow Salesforce API naming conventions. PII fields are excluded.
+        For split earn, both TJs share the same `ExternalTransactionId` (Quote Number)
+        and have `TJ_Processing_Directive__c = SPLIT`.
+      required:
+        - membershipNumber
+        - JournalType
+        - JournalSubType
+        - ActivityDate
+        - Establishment
+        - StartDate
+        - EndDate
+        - Total_Guest_Rooms__c
+        - TransactionAmount
+        - TJ_Processing_Directive__c
+        - status
+        - Additional_Details__c
+      properties:
+        membershipNumber:
+          type: string
+          description: >
+            Loyalty program member account number. CLM resolves this to the
+            LoyaltyProgramMember Id (within the program identified by the
+            `{programName}` URI segment) and stores it on
+            `TransactionJournal.MemberId`.
+          example: "20982fa3ab9f49ab964a78c6845a1peg.01"
+        JournalType:
+          type: string
+          description: >
+            Journal Type name. Drives Loyalty Rule routing on the SObject.
+            Resolved to `TransactionJournal.JournalTypeId` (lookup to Journal Type).
+          enum:
+            - Accrual
+          example: "Accrual"
+        JournalSubType:
+          type: string
+          description: >
+            Journal SubType name. Drives both processor selection inside CLM and
+            Loyalty Rule routing on the SObject. Resolved to
+            `TransactionJournal.JournalSubTypeId` (lookup to Journal Subtype).
+            This contract version supports the `Events` value; additional
+            subtypes will be added without breaking the envelope.
+          enum:
+            - Events
+          example: "Events"
+        ExternalTransactionId:
+          type: string
+          description: >
+            Quote number. Alphanumeric; values are not recycled.
+            Both TJs in a split share the same Quote Number.
+            Maps to `TransactionJournal.ExternalTransactionNumber`.
+          example: "QN-2026-00438"
+        Establishment:
+          type: string
+          description: >
+            MARSHA property code for the event venue.
+            Maps to `TransactionJournal.Establishment` (Text(40)).
+          example: "WASDC"
+        ActivityDate:
+          type: string
+          format: date-time
+          description: >
+            Date/time of the loyalty event activity. **Required.** EQN is awarded to
+            the year of `ActivityDate` (agreed with TIP).
+            Maps to `TransactionJournal.ActivityDate`.
+          example: "2026-05-14T00:00:00Z"
+        StartDate:
+          type: string
+          format: date
+          description: >
+            Event start date.
+            Maps to `TransactionJournal.StartDate`.
+          example: "2026-05-12"
+        EndDate:
+          type: string
+          format: date
+          description: >
+            Event end date.
+            Maps to `TransactionJournal.EndDate`.
+          example: "2026-05-14"
+        BookingDate:
+          type: string
+          format: date
+          description: >
+            Contract signed date — the date the member contracted the event.
+            Needed for downstream systems.
+            Maps to `TransactionJournal.BookingDate`.
+          example: "2026-02-01"
+        Total_Guest_Rooms__c:
+          type: integer
+          minimum: 0
+          description: >
+            Total actualized guest rooms for the event ("Total Guest Room Pick Up").
+            Used for EQN calculation. CLM uses the program-level
+            `EVENT_EQN_ROOM_RATIO`, `EVENT_SINGLE_EQN_CAP`, and
+            `EVENT_SPLIT_EQN_CAP` parameters.
+            Custom field on `TransactionJournal`. **Events subtype only** — other
+            subtypes will omit this field.
+          example: 25
+        TransactionAmount:
+          type: number
+          format: double
+          description: >
+            Total qualifying event revenue in USD. TIP sums Meeting Space + Catering +
+            Additional Revenue before submitting. Used for base points calculation
+            with the program-level `EVENT_BASE_POINTS_PER_DOLLAR`,
+            `EVENT_SINGLE_BASE_POINTS_CAP`, and `EVENT_SPLIT_BASE_POINTS_CAP`
+            parameters.
+            Revenue is NOT split — both TJs in a split carry the full amount.
+            CLM applies the 50/50 division internally.
+            Maps to `TransactionJournal.TransactionAmount`.
+          example: 23000
+        Quantity:
+          type: number
+          format: double
+          minimum: 0
+          description: >
+            Property-submitted purchase bonus points. Additional bonus points separate from
+            event earn. Member cannot exceed the configured total points cap
+            (base + elite bonus + double/triple points + purchase bonus).
+            Maps to `TransactionJournal.Quantity`.
+          example: 0
+        Quantity_Unit__c:
+          type: string
+          description: >
+            Unit for the Quantity field. Q2 fixed value `Points` (Miles deferred to Q3).
+            Maps to `TransactionJournal.Quantity_Unit__c`.
+          enum:
+            - Points
+          example: "Points"
+        PartnerName:
+          type: string
+          nullable: true
+          description: >
+            Primary airline name. Populated only when member earning preference is Miles.
+            Maps to `TransactionJournal.PartnerName`.
+          example: "United Airlines"
+        Partner_Account_Number__c:
+          type: string
+          nullable: true
+          description: >
+            Primary frequent flyer account number. Populated only when member earning preference is Miles.
+            Maps to `TransactionJournal.Partner_Account_Number__c`.
+          example: "UA-987654321"
+        Associate_Id__c:
+          type: string
+          nullable: true
+          description: >
+            Associate EID of the operator who submitted the request.
+            Maps to `TransactionJournal.Associate_Id__c`.
+          example: "EID123456"
+        Notes__c:
+          type: string
+          maxLength: 255
+          nullable: true
+          description: >
+            Free-form comments. SObject field is `Text(255)`.
+            Maps to `TransactionJournal.Notes__c`.
+          example: "Annual leadership conference"
+        TJ_Processing_Directive__c:
+          type: string
+          description: >
+            Event processing directive sent by TIP. CLM uses this value to determine
+            whether to apply full Event earning logic or split-member earning logic.
+
+            `SINGLE` – Single member earns the full Event. CLM applies the configured
+            single-member base points and EQN caps.
+
+            `SPLIT` – TIP is submitting two TJs for the same Event
+            (same `ExternalTransactionId`). CLM halves raw base points and EQN before
+            applying the configured split-member caps.
+          enum:
+            - SINGLE
+            - SPLIT
+          example: "SINGLE"
+        Points_Multiplier__c:
+          type: integer
+          nullable: true
+          description: >
+            Numeric multiplier applied to the capped base points before elite bonus is
+            calculated. CLM reads this value directly; Promotion Engine integration is
+            out of Q2 scope.
+
+            1 (or absent) = no multiplier
+            2             = Double Points (DBPT)
+            3             = Triple Points (TRPT)
+          enum:
+            - 1
+            - 2
+            - 3
+          example: 1
+        status:
+          type: string
+          description: >
+            Processing status on submission. Always set to `Pending` at time of submission.
+            CLM updates to `Processed` or `Error` after Loyalty Process evaluation.
+            Maps to `TransactionJournal.Status`.
+          enum:
+            - Pending
+          example: "Pending"
+        Additional_Details__c:
+          $ref: '#/components/schemas/Additional_Details__c'
+
+    Additional_Details__c:
+      type: object
+      description: >
+        Subtype-specific extended attributes stored as serialized JSON on the
+        single shared field `TransactionJournal.Additional_Details__c`
+        (Long Text Area(131,072)). The shape below is the **Events** variant
+        (classification, revenue breakdown, promotion code, ADR). Other subtypes
+        define their own variants; CLM serialises whichever shape it receives.
+      required:
+        - organizationType
+        - eventType
+        - eventName
+      properties:
+        organizationType:
+          type: string
+          description: >
+            Organization type of the meeting planner. Required picklist.
+            `OO` (Other) requires `otherOrganizationType` to be populated.
+            `GV` (Government) is rejected at the GXP layer; CLM also rejects defensively.
+          enum:
+            - AF
+            - AS
+            - CP
+            - GV
+            - IN
+            - IP
+            - MM
+            - OO
+            - SO
+            - SR
+            - TT
+          x-enum-descriptions:
+            AF: Affinity
+            AS: Association
+            CP: Corporate
+            GV: Government
+            IN: Intermediary
+            IP: Independent Planner
+            MM: Mid Market
+            OO: Other – requires otherOrganizationType
+            SO: Social
+            SR: Not Defined
+            TT: Tour and Travel
+          example: "CP"
+        otherOrganizationType:
+          type: string
+          nullable: true
+          description: Free-form text. Required when `organizationType` is `OO`.
+          example: "University Research Department"
+        eventType:
+          type: string
+          description: >
+            Type of the event. Required picklist.
+            `OE` (Other) requires `otherEventType` to be populated.
+          enum:
+            - AN
+            - BD
+            - CO
+            - FR
+            - HO
+            - IN
+            - LE
+            - MA
+            - NP
+            - OE
+            - RE
+            - RO
+            - RU
+            - SA
+            - SO
+            - SP
+            - SR
+            - TE
+            - TS
+            - WE
+          x-enum-descriptions:
+            AN: Anniversary
+            BD: Board
+            CO: Convention
+            FR: Fund Raiser
+            HO: Holiday
+            IN: Incentive
+            LE: Legislative
+            MA: Management
+            NP: New Product Launch
+            OE: Other – requires otherEventType
+            RE: Religious
+            RO: Rooms Only
+            RU: Reunion
+            SA: Sales
+            SO: Social
+            SP: Sports
+            SR: Not Defined
+            TE: Training/Education
+            TS: Trade Show
+            WE: Wedding
+          example: "MA"
+        otherEventType:
+          type: string
+          nullable: true
+          description: Free-form text. Required when `eventType` is `OE`.
+          example: "Product Certification Workshop"
+        eventName:
+          type: string
+          description: Name of the event.
+          example: "Annual Leadership Meeting"
+        paymentType:
+          type: string
+          nullable: true
+          description: >
+            Intended payment type for the event. Stored as part of
+            `TransactionJournal.Additional_Details__c`.
+          enum:
+            - AX
+            - CA
+            - CB
+            - CK
+            - DB
+            - DC
+            - DS
+            - JC
+            - MC
+            - VC
+            - VS
+            - XX
+          x-enum-descriptions:
+            AX: CREDIT CARD - AMERICAN EXPRESS
+            CA: CASH
+            CB: CREDIT CARD - CARTE BLANCHE
+            CK: CHECK
+            DB: DIRECT BILL
+            DC: CREDIT CARD - DINERS CARD
+            DS: CREDIT CARD - DISCOVER
+            JC: CREDIT CARD - JAPAN CREDIT BUREAU
+            MC: CREDIT CARD - MASTER CARD
+            VC: VOUCHER
+            VS: CREDIT CARD - VISA
+            XX: OTHER
+          example: "DB"
+        promotionCode:
+          type: string
+          nullable: true
+          description: >
+            Business label for DBPT/TRPT-style event multiplier. Full Promotion Engine
+            integration is out of Q2 scope; CLM uses top-level `Points_Multiplier__c` for the actual
+            calculation. Omit when no multiplier applies.
+          enum:
+            - DBPT
+            - TRPT
+          x-enum-descriptions:
+            DBPT: Double Points
+            TRPT: Triple Points
+          example: "TRPT"
+        averageDailyRate:
+          type: number
+          format: double
+          description: Average daily room rate for the event in USD. Reporting attribute.
+          example: 299
+        meetingSpace:
+          type: number
+          format: double
+          description: Total meeting and function space rental revenue in USD.
+          example: 12000
+        catering:
+          type: number
+          format: double
+          description: Total catering revenue in USD.
+          example: 8500
+        additional:
+          type: number
+          format: double
+          description: Total additional revenue in USD.
+          example: 2500
+        qualifying:
+          type: number
+          format: double
+          description: >
+            Total qualifying event revenue in USD.
+            Must equal `meetingSpace + catering + additional`.
+            This value mirrors `TransactionJournal.TransactionAmount`.
+          example: 23000
+
+    TransactionJournalBatchResponse:
+      type: object
+      description: >
+        Response wrapper containing one result entry per submitted Transaction Journal.
+        A 200 HTTP status is returned for all business-logic outcomes (processed, capped, rejected).
+        The per-TJ `Status` and `ErrorDescription` fields distinguish success, cap warning,
+        and rejection outcomes.
+      properties:
+        transactionJournals:
+          type: array
+          description: List of results in the same order as the submitted request.
+          items:
+            $ref: '#/components/schemas/TransactionJournalResult'
+
+    TransactionJournalResult:
+      type: object
+      description: >
+        Result for a single submitted Transaction Journal. This mirrors the current
+        custom Apex response wrapper and intentionally returns only the created TJ
+        identifier, final status, and a human-readable warning/error string.
+        Covers three outcomes:
+          1. Processed — TJ created, no caps triggered; `ErrorDescription = null`.
+          2. Processed with warning — TJ created, configured base cap applied;
+             `ErrorDescription` contains the fixed cap warning.
+          3. Error — TJ NOT retained (request rolled back); configured total points
+             cap exceeded or validation failed; `ErrorDescription` contains the
+             rejection reason.
+      required:
+        - Id
+        - Name
+        - Status
+        - ErrorDescription
+      properties:
+        Id:
+          type: string
+          nullable: true
+          description: >
+            Salesforce record Id of the created TransactionJournal.
+            Null when `Status = Error` (request rolled back).
+          example: "0lVDo000000CaXXMA0"
+        Name:
+          type: string
+          nullable: true
+          description: >
+            TransactionJournal auto-number/name. Null when `Status = Error`.
+          example: "1234567890"
+        Status:
+          type: string
+          description: >
+            Final processing status for this TJ.
+            `Processed` = TJ created and points awarded (cap may have been applied).
+            `Error`     = TJ not retained (200k cap exceeded or member invalid).
+          enum:
+            - Processed
+            - Error
+          example: "Processed"
+        ErrorDescription:
+          type: string
+          nullable: true
+          description: >
+            Null when `Status = Processed` and no warning exists.
+            For base-cap warning, fixed value:
+            `Reward is over max allowed, so max will be awarded.`
+            For total points cap breach, fixed message plus overage amount:
+            `You must correct the following error(s) before proceeding:
+            Earned Points plus Purchased Points cannot exceed 200,000 points,
+            please adjust Purchased Point Value. Overage: 5000`
+          example: "Reward is over max allowed, so max will be awarded."

@@ -1,0 +1,897 @@
+Epic Details
+
+Prepared from Jira issue records.
+
+==========================================================================================
+LYLT-8824 - Earn | Partnerships & Co-Brand | CLM Miles Preference Validations + Statement of Activity for Miles as part of a Stay (SF Configuration)
+==========================================================================================
+Issue Type: Epic
+Status: Plan
+Priority: None or Not Defined
+Assignee: Marcus Forbes
+Reporter: Marcus Forbes
+Created By: Marcus Forbes
+Created Date: 2026-01-28
+Last Updated: 2026-06-05
+Target End Date: 2027-03-03
+Parent: MGPP-1107 - LYLT: Partnerships | Partner Earn & Eligibility Rules
+Labels: Part_Co_DL, earn_replat, earn_replat_p1, partner_replat
+
+Description:
+Epic Description 
+
+Miles preference earners were not in scope for Q1 Earn build and should be tested with Partnerships & Co-Brand track.
+
+Implement validations for miles preference in CLM and execute test cases that support: 
+
+* System can exchange data as needed with MI CPP to award earn in partner airline miles, including for United MileagePlus and Emirates Skyward.
+* System can award earn in loyalty currencies outside of points.
+
+Epic Details
+
+As part of Q1 Earn scope, stay processing rules have been established -  https://marriottcloud.atlassian.net/browse/LYLT-347 , https://marriottcloud.atlassian.net/browse/LYLT-2862 , https://marriottcloud.atlassian.net/browse/LYLT-2864 , https://marriottcloud.atlassian.net/browse/LYLT-2863 , https://marriottcloud.atlassian.net/browse/LYLT-2866 , https://marriottcloud.atlassian.net/browse/LYLT-2867 , https://marriottcloud.atlassian.net/browse/LYLT-359 , https://marriottcloud.atlassian.net/browse/LYLT-2868 , https://marriottcloud.atlassian.net/browse/LYLT-2869
+
+Requirements: 
+
+1. Incorporate DTT stay validations into CLM/MI Integration scope of work for Q3 specifically Miles earning preference - https://marriottcloud.atlassian.net/wiki/spaces/LYLT/pages/2876244211/Stay+Error+Code+Handling+TIP+vs+Salesforce+CLM#7.-Partner-%26-Miles-Eligibility(Will-be-pat-of-Earn-API-V2.0)-This-is-for-Q2 
+2. Execute logic to ensure accuracy of points to miles conversion.
+3. Solve for “Fixed” miles scenario as there are specific airlines who only award fixed miles in all cases.
+4. Incorporate Miles earning preference into Statement of Activity work.
+
+| CODE | Reason | CLM Disposition |
+| --- | --- | --- |
+| SM02 | Cannot add Miles Stay over 1 year old | Post Ineligible |
+| S307 (removal) | Brand does not participate in miles program for this stay | Suspended Stays |
+| 6064 | Airline not a partner when stay ended | Suspended Stays |
+| SM11 | Partner not valid for Brand at time of stay | Posted Ineligible |
+
+Validation Logic:
+
+SM02 = ageOfStay means difference between checkout and current date.  For miles preference ageOfStay can't be more than one year.
+
+S307 = brand exists in brand table and MMILES_YN in brand table equals N for miles earning preference
+
+6064 =
+
+HXTPARTNER  
+1.date_begun  
+2.date_ended  
+If Arrival date of the stay is after the date_ended column of hxtpartner table of a given partner or if departure date of the stay is before the date_begun of given partner  of hxtpartner table.
+
+SM11 = Miles is 0 for paid stay
+
+Assumption
+
+* Any use case outside of “Stay” will be covered within the Partners and CoBrand track.
+* Tracking of how many miles were awarded for a stay, is tracked within Partners and CoBrand track
+* Earning per specific airline, post stay or non-stay, is set up on the Partners and CoBrand track.
+
+Business Use Cases to be tested
+
+* Scenario 46 - Existing member books and completes a qualifying stay with qualifying incidentals on their folio and their earning preference is miles. Member should earn miles on qualifying eligible revenue, registered promotions, program benefits and Path to Elite.  Since there is a miles preference, member is not eligible for elite bonus points and promotion earn is based on the promotion(s) the member is registered for.  Program benefits remain in points and do not convert to miles during stay processing.
+
+    * Note: Recommend table setup in CLM that gives Airline, Multiplier, and country of member profile to derive conversion of USD to miles.
+    
+        * Preferred Airline on Member Profile, opts to earn miles for same airline
+        
+    
+* Get/List stay details from CLM - Empower CEC Add Stay Agent access: Missing Stay Claims, stay modification
+
+    * Add miles earner stay - with auditing of who made change
+    * Cannot modify miles earner stay
+    * Cannot soft delete miles earner stay
+    
+* Miles Earning Preference - UGI + CLM impact
+
+    * Preferred Airline on Member Profile, opts to earn miles for same airline
+    * Cannot modify miles earner stay
+    * Cannot soft delete miles earner stay
+    
+
+Persona D: Platinum Member, Miles Earn Preference - United Airlines, 1 night stay, Ritz-Carlton: $200 room rate + $100 incidental spend + Welcome gift of points
+
+| Scenario | Persona | Base (Spend\*Base/$) | Elite Bonus | Promotions | Program Benefits | EQN | EQS |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| 46 | D | (200+100)x2=600 Miles | NO | YES | 1000 points | YES | YES |
+
+Airline Miles Earn: Guest will earn miles instead of points, based on spend x multiplier. Currently, multiplier is based on Airline → Brand. In our example, United Airlines has a 1x or 2x multiplier, depending on brand - RC falls into the 2x category. For more info - https://www.marriott.com/loyalty/earn/miles.mi 
+
+‌
+
+User Flow: https://marriottcloud.atlassian.net/wiki/spaces/~712020e46dfeec143d4816b2400aec56dedb8b/whiteboard/2352709635
+
+Linked Issues / Dependencies:
+- Cloners (Clones): LYLT-381 - Partnerships & Co-Brand | Earn: Integrations with Co-Brands [Done]
+- Dependency (Predecessors): LYLT-2148 - Partnerships & Co-Brand | P1 | Partner & Co-Brand Earn Rules - Part 2 (SF Config) [Backlog]
+- Relates (Relates to): LYLT-9751 - Q2 | P1 | Earn CLM User Permission Access Build: Operations Group (SF Configuration) [In Progress]
+- Dependency (Predecessors): LYLT-1774 - Partnerships & Co-Brand | P1 | SF Partner List (Additional 12) (MI Integration) [In Progress]
+- Cloners (Is cloned by): LYLT-16067 - Earn | Partnerships & Co-Brand | CLM Miles Preference Validations + Statement of Activity for Miles as part of a Stay (MI Integrations) [Refinement]
+- Dependency (Successors): LFS-6566 - CLM MMF Finalization for Partner Reimbursement [In Progress]
+- Dependency (Successors): LYLT-14290 - Partnerships & Co-Brand | P1 | SF Partner List cont. w/ all functionalities (Q3 Additional 12) (MI Integration) [Backlog]
+
+==========================================================================================
+LYLT-20917 - Earn Foundational | P1 | Enhancement to Transaction Journal Setup - 2026Q3 - Stay, Earn (SF Config)
+==========================================================================================
+Issue Type: Epic
+Status: In Progress
+Priority: High or Should Have
+Assignee: Marcus Forbes
+Reporter: Marcus Forbes
+Created By: Marcus Forbes
+Created Date: 2026-05-28
+Last Updated: 2026-06-04
+Target End Date: 2027-03-03
+Parent: MGPP-1080 - LYLT - Earn: Stay Processing and Adjustments
+Labels: P1, earn_replat, foundations_replat
+
+Description:
+High-level Business Description 
+
+Continuation of https://marriottcloud.atlassian.net/browse/LYLT-13248 for enhancement:
+
+1. UI changes for any field that mentions “Points” but the values in the field could be either points or miles. Change from “Points” to “Earnings”. Need to identify additional fields that would be included and the impact of changes to the field name. Fields ID’d so far:
+
+    1. “Total Points” → “Total Earnings”
+    2. “Total Points Balance” → “Total Earnings Balance”
+    
+
+Assumptions | Background | Context
+
+https://marriottcloud.atlassian.net/wiki/spaces/LYLT/pages/2136244228/LYLT-550+-+Loyalty+Foundations+Transaction+Journal+Setup 
+
+1. Functionality: 
+
+    1. 
+    
+
+Business Use Cases 
+
+* High Level User Stories
+
+    * https://marriottcloud.atlassian.net/browse/LYLT-15742 - Looking to do in Sprint 2
+    * Finalize Stay API contract alignment by completing stay-level field ownership and deprecation cleanup
+    
+        * The top-level `stay` + `transactionJournals[]` payload structure is already in place from `LYLT-13092`. This story now focuses on finalizing remaining contract and processing alignment so all intended stay-owned attributes are consistently sourced from `stay`, with compatibility-safe transition behavior.
+
+Linked Issues / Dependencies:
+- Cloners (Clones): LYLT-13248 - Earn Foundational | P1 | Enhancement to Transaction Journal Setup - 2026Q2 - Stay, Earn (SF Config) [In Progress]
+
+==========================================================================================
+LYLT-14270 - Earn | P1 | CLM Multipliers Historical Tracking: Brand/EQN - Year over year(SF Configuration)
+==========================================================================================
+Issue Type: Epic
+Status: Plan
+Priority: High or Should Have
+Assignee: Marcus Forbes
+Reporter: Marcus Forbes
+Created By: Marcus Forbes
+Created Date: 2026-03-25
+Last Updated: 2026-06-05
+Target End Date: 2027-03-03
+Parent: MGPP-1078 - LYLT - Earn: Earn Management Rules and Eligibility
+Labels: earn_replat, earn_replat_p1
+
+Description:
+Epic Description
+
+Enhance our loyalty program by accurately keeping track of all multipliers within CLM historically, year over year.  This feature is crucial for audit reporting purposes ensuring that our customers receive the correct points for their stays in the year the stay occurred.
+
+Epic Details
+
+CLM can apply rules to track all changes to multipliers.
+
+Requirement
+
+Connected Properties - P1
+
+* CLM can track any changes made in backend setup regrading all earn multipliers historically.  
+
+![](blob:https://media.staging.atl-paas.net/?type=file&localId=null&id=a6dc3f87-5147-429a-a251-7920654e67ee&&collection=&height=591&occurrenceKey=null&width=1010&__contextId=null&__displayType=null&__external=false&__fileMimeType=null&__fileName=null&__fileSize=null&__mediaTraceId=null&url=null)
+Out Of Scope
+
+* Using historical EQN and Base Earn multipliers for processing logic. 
+
+    * Taken up with Bulk Add P2
+    
+
+Assumptions
+
+* N/A
+
+Business Use Case
+
+* In the event Earn is deployed to CLM first and changes are made to terms and conditions supporting Brand and/or EQN multipliers to where stays need to be processed under the old multipliers instead of the new due to flexible configuration requirements.  This is where I see the impact to Earn as we won't have any insight into the changes and all stays will be processed under the updated rules instead of the rules when the stay occurred.   Note: No logic needed for reprocessing the stay, simply need tracking of the changes.
+
+Dependencies
+
+N/A
+
+Linked Issues / Dependencies:
+- Cloners (Clones): LYLT-359 - Earn | P1 | CLM Earn Stay Processing: Year Crossover Stays (SF Configuration) [Done]
+
+==========================================================================================
+LYLT-356 - Earn | P1 | CLM Point Source Tracking Management (SF Configuration) Q3 Dependency
+==========================================================================================
+Issue Type: Epic
+Status: Plan
+Priority: High or Should Have
+Assignee: Marcus Forbes
+Reporter: josh.s.blair
+Created By: Hasan Syed
+Created Date: 2025-04-02
+Last Updated: 2026-06-08
+Target End Date: 2027-03-03
+Parent: MGPP-1078 - LYLT - Earn: Earn Management Rules and Eligibility
+Labels: earn_replat, earn_replat_p1
+
+Description:
+Epic Details
+
+The intent of Point Source Tracking is to persist where points came from in a way that supports expiration, redemption ordering, reporting, fraud controls, and future extensibility not just stays.  Bucketing in CLM is required.  Buckets should be source-driven, not calculation driven.
+
+CLM Earn SF Configuration Requirement
+
+Build individual point source buckets in CLM that will in turn allow for a specific order of redemption with a supplemental source category field to differentiate where the earn originated from.
+
+* Rewards (Bonvoy Points)
+
+    * Standard earn through stays, partnerships, cobrand, etc
+    
+* MVW (Post-Spinoff)
+
+    * Earned in various ways by MVW Timeshare Owners
+    
+        * Owners exchange their weeks for points, Sales incentives, Referrals
+        * Each timeshare property has its own bonus codes associated with it and those business codes would tell CLM that this earn should be deposited into the MVW Post-Spinoff bucket.
+        * Earn is pre-calculated and sent to loyalty to process
+        
+    
+* MVW (Pre-Spinoff)
+
+    * Legacy/Historical points that are not earned today, but may be in a member’s balance
+    
+* Vistana
+
+    * Legacy/Historical points that are not earned today, but may be in a member’s balance
+    
+
+Current redemption priority is
+
+1. Vistana
+2. MVW (Pre-Spinoff)
+3. MVW (Post-Spinoff)
+4. Rewards (Bonvoy Points)
+
+* Each bucket must support:
+
+    * Bucket consumption sequencing - configurable order in which buckets are decremented during redemption.
+    
+        * Bucket sequencing to be implemented
+        
+            1. Vistana
+            2. MVW (Pre-Spinoff)
+            3. MVW (Post-Spinoff)
+            4. Rewards
+            
+        
+    * Re-deposit rules -how points return to the correct source bucket on cancellation or modification.
+    * Fraud traceability - every earn transaction tagged with source or Rule ID for extraction.
+    * Audit trail - full history of point movements in/out of each bucket.
+    
+
+Additional Details
+
+Track earning of the points from different transaction types, currencies, and promotions
+
+Point Categories sources: Points Earned from Stay(Bonvoy Points), Vistana Points, MVW Points(Pre/Post Spinoff), Bonus Points:
+
+1. Activity Base Point earn = Stay processing earn, MVW Post Spinoff (Continuous earn, redeemable)
+2. Legacy Historical Points = Vistana, MVW Pre Spinoff/MORI (Redeemable Only, no continuous earn)
+3. Fixed Base Point earn = All other processing, service recovery, bonus codes etc.  (Manual Earn posted by MI Associate, redeemable)
+
+    1. Add bonus points outside of a stay (permission based access)
+    2. Remove bonus points outside of a stay (permission based access)
+    
+
+[Vistana Points](https://marriottloyalty--teamdev.sandbox.lightning.force.com/lightning/r/11cO300000AyOJRIA3/view)
+
+Marriott [Bonvoy Points](https://marriottloyalty--teamdev.sandbox.lightning.force.com/lightning/r/11cO300000AteNVIAZ/view)
+
+[Marriott Vacations Worldwide (Pre-Spinoff)](https://marriottloyalty--teamdev.sandbox.lightning.force.com/lightning/r/11cO300000Ay2q8IAB/view)
+
+[Marriott Vacations Worldwide (Post-Spinoff)](https://marriottloyalty--teamdev.sandbox.lightning.force.com/lightning/r/11cO300000AyNlZIAV/view)
+
+### OUT OF SCOPE
+
+* (P2) Build _categories_ among those buckets for further earn differentiation 
+
+    * Categories & SubCategories include
+    
+        * Stay Earn
+        
+            * Hotel Stay
+            * Partner
+            * Elite Bonus
+            * Welcome Gift/Alternative Lounge Access
+            * Service Recovery
+            * Promotion
+            * Points Transfer
+            
+        * Legacy Historical Points & Non-Stay Timeshare Earn & Bonuses
+        
+            * Vistana Points
+            * MVW (Pre-Spinoff)
+            * MVW (Post-Spinoff)
+            
+        * Cobrand
+        
+            * Bonus Codes
+            * CoBrand Promotion
+            
+        * Partner
+        
+            * Partner Earn
+            * Purchased Points
+            
+        * Events
+        
+            * Events
+            
+        
+    
+* Each bucket must support:
+
+    * Configurable expiration rules - expiry model can differ per bucket and must be changeable without code deploys. (This is a P2 requirement)
+    * Forfeiture/penalty handling - rules for how each bucket handles expirations and forfeitures. (This is a P2 requirement to configure this by bucket)
+    
+
+Assumptions (if applicable)
+
+1. In P1,  all points will expire with the same model of 24 months of inactivity in. P2 requirements will allow for differing points expiry
+2. P2 work will include additional buckets (subCurrencies) that will allow for promotional points with differing expirations dates (including fixed dates)
+
+Out-of-Scope
+
+* Earn calculation logic
+* Redemption prioritization rules themselves
+* Expiration rule definitions (configuration only supported)
+* UI design for operations or reporting
+
+Business Use Cases (The Life of a Point)
+
+A logically distinct origin of points that can share common rules for expiration, redemption priority, reversals and reporting:
+
+* Stay Activity Based Earn
+
+    * Stay processing earn
+    
+* Event Activity Based Earn
+
+    * MI Bonvoy Events processing earn
+    
+* Legacy Historical Points.
+
+    * Vistana Points: Migrated Vistana Signature Experiences points.
+    * MVW Pre-Spinoff (MORI): Marriott Vacations Worldwide points earned _before_ spinoff
+    
+* Fixed base point earn
+
+    * Bonus codes
+    * Promotions
+
+Linked Issues / Dependencies:
+- Relates (Relates to): LYLT-96 - EM15: Earn - point tracking [Backlog]
+- Relates (Relates to): LYLT-504 - Loyalty Foundations | Loyalty Earned Currencies [Done]
+- Relates (Relates to): LYLT-83 - EM1-1: Earn - process earn transitions flagging eligibility [Backlog]
+- Relates (Relates to): LYLT-221 - EOES3: Earn - points purchased and gifted rules [Done]
+- Relates (Relates to): LYLT-1571 - Redeem | P1 | SF Integrations | Rules Management: Source Bucket Management [Plan]
+- Dependency (Predecessors): LYLT-1571 - Redeem | P1 | SF Integrations | Rules Management: Source Bucket Management [Plan]
+- Issue Split (Split To): LYLT-355 - Earn | P1 | CLM Points Expiration (SF Configuration) Q3 Dependency [Plan]
+- Cloners (Is cloned by): LYLT-21667 - Earn | P2 | CLM Point Source Tracking Management (SF Configuration) [Backlog]
+
+==========================================================================================
+LYLT-16103 - Earn | P1 | eBonus Solution (SF Configuration)
+==========================================================================================
+Issue Type: Epic
+Status: Plan
+Priority: Critical or Must Have
+Assignee: Marcus Forbes
+Reporter: Marcus Forbes
+Created By: Marcus Forbes
+Created Date: 2026-04-16
+Last Updated: 2026-06-08
+Target End Date: 2027-03-03
+Parent: MGPP-1345 - LYLT - Earn: eBonus Processing in CLM
+Labels: earn_replat, earn_replat_p1
+
+Description:
+Epic Description
+
+Configure eBonus processing in CLM to support existing functionality from GXP.  Enable the end-to-end process for posting bonus points or miles after GXP approval.
+
+SF Configuration Requirements
+
+* Ability to give good will bonus points for any reason (Set up of a good will bonus code) - Either Stay related or not related to a stay. 
+* Create process to map all current per property bonus code products (product2) that have been migrated into CLM (SF)
+
+    * Allow for a system administrator to add/modify/delete per property bonus codes into CLM.
+    * New Property openings <custom data-type="emoji" data-id="id-0">:warning:</custom> this needs to be solved for. - Automate it.  Leverage the Property Code option - <custom data-type="mention" data-id="id-1">@Thota, Raj</custom> <custom data-type="mention" data-id="id-2">@Imad.Hoteit</custom> 
+    
+        * 2 codes automatically come per property.  Miles and Points (Billed back to property)
+        
+            * Make this better, use the 2 codes but add Property Code to include tracking per property.
+            * HXTPROMPOP is the mainframe table being used today.
+            
+        
+    
+* Create new TJ Type for “eBonus” requests.  Attributes coming from TIP:
+
+    * Property Code
+    * Member Account Number
+    * Bonus Type (Points or Miles)
+    * Bonus Reason
+    * Bonus Earned Date
+    * Bonus Code (specific to each property)
+    * Points/Miles (Amount of Points or Miles)
+    * Frequent Flyer Number
+    * Submitter Comments
+    * Submitter EID (Operator ID)
+    * Approver EID (Operator ID)
+    
+* Consume TIP request and Post Bonus Earning (Points or Miles) to member account via API Flow
+* Implement refresh service for (GET API) transaction status: 
+
+    * Refresh calling pattern established for historical processing of eBonus (SF) (In Process, etc.)
+    
+* LFS API Integration to serve estimated cost of eBonus back to GXP: <custom data-type="emoji" data-id="id-3">:question_mark:</custom> EA Perspective needed on solution orchestration (called by TIP, CLM or GXP?). <custom data-type="mention" data-id="id-4">@Immidisetti,Ram</custom> <custom data-type="mention" data-id="id-5">@Mark, Sonia</custom> <custom data-type="mention" data-id="id-6">@ayyamani.sadasivam</custom> 
+
+    * LFS to develop API for CLM to make an API call to LFS for estimated cost
+    
+        * LFS will not need to store the estimated cost data in LFS DB. 
+        
+    
+* Enhance Earn Platform event to include eBonus postings (SF)
+
+    * <custom data-type="emoji" data-id="id-7">:question_mark:</custom> Status - Depends on CLM solution. 
+    
+        * "/loyalty/v1/ebonus/submit"  
+          "/loyalty/v1/ebonus/refresh/{transactionId}"  
+          "/loyalty/v1/ebonus/cost"  
+          "/loyalty/v1/ebonus/available-bonus/{marshaCode}"
+        
+    
+* RBAC Service Operations Group: Ability to give good will bonus points for any reason (Set up of a good will bonus code) - Either Stay related or not related to a stay.
+* Validations: [https://marriottonline-my.sharepoint.com/personal/kkulk088_marriott_com/\_layouts/15/onedrive.aspx?id=%2Fpersonal%2Fkkulk088_marriott_com%2FDocuments%2FMicrosoft Teams Chat Files%2FRWDVEBN1_Business_Validation_Analysis.md&parent=%2Fpersonal%2Fkkulk088_marriott_com%2FDocuments%2FMicrosoft Teams Chat Files&ct=1780063197336&or=Teams-HL&ga=1](https://marriottonline-my.sharepoint.com/personal/kkulk088_marriott_com/_layouts/15/onedrive.aspx?id=%2Fpersonal%2Fkkulk088%5Fmarriott%5Fcom%2FDocuments%2FMicrosoft%20Teams%20Chat%20Files%2FRWDVEBN1%5FBusiness%5FValidation%5FAnalysis%2Emd&parent=%2Fpersonal%2Fkkulk088%5Fmarriott%5Fcom%2FDocuments%2FMicrosoft%20Teams%20Chat%20Files&ct=1780063197336&or=Teams%2DHL&ga=1)
+
+    * CLM Error Codes for serving back to GXP through TIP. (Update list what SF needs for backend only validations <custom data-type="mention" data-id="id-8">@josh.s.blair</custom>) <custom data-type="emoji" data-id="id-9">:warning:</custom> 
+    
+
+![](blob:https://media.staging.atl-paas.net/?type=file&localId=null&id=40eec41d-794d-49e6-a2b2-c97c5ab5bbc2&&collection=&height=614&occurrenceKey=null&width=618&__contextId=null&__displayType=null&__external=false&__fileMimeType=null&__fileName=null&__fileSize=null&__mediaTraceId=null&url=null)
+![](blob:https://media.staging.atl-paas.net/?type=file&localId=null&id=1a2639b2-1e0c-4dfb-b3b5-83a25b81d240&&collection=&height=275&occurrenceKey=null&width=620&__contextId=null&__displayType=null&__external=false&__fileMimeType=null&__fileName=null&__fileSize=null&__mediaTraceId=null&url=null)
+Functionality 
+
+Operations Group (Added from LYLT-9751) 
+
+* Adjust points Category Dropdown Menu:
+
+    * Current: Points Transfer
+    * Current: Group Stay
+    * Current: Event
+    * Current: Service Recovery
+    * Current: Resolve Disputed Points
+    * Add: Configuration Issue CLM
+    * Add: Property Setup/ MI Product Catalog
+    
+
+Assumptions
+
+1. Existing Bonus Codes per property will be migrated into CLM as products by Data Migration.
+2. New Property Openings will need their Bonus Codes added in CLM as products by a system administrator. (must be evented out to LFS)
+
+Dependencies
+
+* Data Migration of property specific bonus codes into CLM - https://marriottcloud.atlassian.net/browse/LYLT-4884 
+* Cost back to property per bonus code - LFS (Q4)
+* All Loyalty CLM tracks play a part in eBonus transactions.  Further alignment is needed across all tracks.
+
+Business Use Case
+
+Enabling accurate, controlled, auditable eBonus transactions in CLM - protecting member experiences, reducing financial risks and supporting property operations.
+
+Linked Issues / Dependencies:
+- Relates (Relates to): LYLT-12988 - GXP | P1 | TIP eBonus Solution & Design (MI Integration) [Analysis]
+
+==========================================================================================
+LYLT-17139 - Earn | P1 | Points Calculations: Marriott Bonvoy Events Part 2 (SF Configuration)
+==========================================================================================
+Issue Type: Epic
+Status: Refinement
+Priority: Critical or Must Have
+Assignee: Marcus Forbes
+Reporter: Marcus Forbes
+Created By: Marcus Forbes
+Created Date: 2026-04-29
+Last Updated: 2026-06-05
+Target End Date: 2027-03-03
+Parent: MGPP-1346 - LYLT - Earn: Marriott Bonvoy Events Processing in CLM
+Labels: earn_replat, earn_replat_p1
+
+Description:
+### Epic Details
+
+Continuation of https://marriottcloud.atlassian.net/browse/LYLT-363 
+
+* Implement Brand Logic: Most Properties participate in MI Bonvoy Events. The following Brands do not participate:
+
+    *  5.2.b. _Non-Participating Brands_. Marriott Bonvoy Events is not valid at the following brands: Bulgari Hotels & Resorts, Design Hotels, Homes & Villas by Marriott Bonvoy, Marriott Executive Apartments, The Phoenician Residences, a Luxury Collection Residence Club, Scottsdale, Residence Inn, The Ritz-Carlton Club, The Ritz-Carlton Yacht Collection, The St. Regis Residence Club, StudioRes, and TownePlace Suites.
+    
+* Implement Exception for Ambassador Elite spend restriction. (MB https://marriottcloud.atlassian.net/browse/LYLT-18896 )
+
+    * Limitations of spend to exclude when GET profile calls TIP we do not give back spend. 
+    
+* Implement Statement of Activity for Points transactions
+* Implement Platform Event to include MI Bonvoy Event Points transactions.
+* Implement CLM Validations Part 1
+
+    * property.invalid.brand=Property's brand {0} is not allowed to participate in Meetings and Events.
+    * over.max.limit=Reward is over the maximum allowed, so the maximum will be awarded (already in Part 1)
+    * rewarding.events.reached.max200=Earned Points plus Purchased Points cannot exceed 200,000 points, please adjust Purchased Point value (already in Part 1)
+    
+
+### Requirements
+
+Implement Brand Logic
+
+* The system must maintain a configurable list of non-participating brands for MI Bonvoy Events.
+* When an event earn request is submitted, CLM must validate the property's brand code against the non-participating brand list before creating a Transaction Journal.
+* Non-participating brands: Bulgari Hotels & Resorts, Design Hotels, Homes & Villas by Marriott Bonvoy, Marriott Executive Apartments, The Phoenician Residences (a Luxury Collection Residence Club, Scottsdale), Residence Inn, The Ritz-Carlton Club, The Ritz-Carlton Yacht Collection, The St. Regis Residence Club, StudioRes, and TownePlace Suites.
+* The validation must apply to both points and miles earning preferences and to split events.
+
+Implement Ambassador Elite Spend Restriction
+
+* MI Bonvoy Events qualifying spend must not count toward the Ambassador Elite $23,000 qualified spend requirement.
+* When TIP receives a GET profile call, the system must exclude MI Bonvoy Events spend from the Ambassador Elite spend tracker response.
+* This exclusion applies regardless of earning preference (points or miles), elite tier, or whether the event was split.
+
+Implement Statement of Activity for Points Transactions
+
+* Processed MI Bonvoy Event transactions (points) must appear as distinct line items on the member's Statement of Activity (SOA).
+* Each line item must display: earning currency (points), base earn amount, elite bonus (if applicable), and bonus earn from the property.
+* In a 50/50 split scenario, each member's SOA must show only their respective share of the earn.
+* The SOA entry must be distinguishable from stay-based transactions (identifiable as an "Event" transaction type).
+
+Implement Platform Event for MI Bonvoy Event Points Transactions
+
+* CLM must publish an Earn Platform Event after successfully processing a MI Bonvoy Event transaction and creating a TJ.
+* The Platform Event must be identifiable as an "Event" transaction type (distinct from stay).
+* Payload must include: earning currency (points or miles), base earn amount, elite bonus (if applicable), bonus earn from property, and EQN values.
+* In a 50/50 split, CLM must publish a separate Platform Event for each member.
+* The Platform Event must not include qualifying spend toward Ambassador Elite spend.
+* Downstream consumers must be able to process MI Bonvoy Event transactions without breaking changes, or any contract changes must be documented.
+
+Implement CLM Validations Part 1 for MI Bonvoy Events
+
+* CLM must enforce the following validation rules during MI Bonvoy Event earn processing:
+
+    1. Brand Validation — Reject requests for non-participating brands with message: _"Property's brand {0} is not allowed to participate in Meetings and Events."_
+    2. Max Earn Cap — If the calculated reward exceeds the maximum allowed (60,000 base points or 20,000 miles), process the maximum and return message: _"Reward is over the maximum allowed, so the maximum will be awarded."_
+    3. 200,000 Combined Points Cap — If earned points + purchased/bonus points exceed 200,000, reject with message: _"Earned Points plus Purchased Points cannot exceed 200,000 points, please adjust Purchased Point value"_ (include overage amount in response). No TJ created; expect resubmission.
+    
+
+### Dependencies (if applicable) 
+
+1. Impacted systems: CLM, TIP
+2. High-level dependencies: 
+
+    1. Integrations with TIP 
+    2. Foundational Setup of Rules Engine in CLM
+    3. Foundational Setup of Member Benefits Elite Tiers and Bonus Structure in CLM
+    4. Foundational Setup of Promotions including Partners in CLM 
+    
+
+### Assumptions (if applicable) 
+
+1. Only eligible revenue is submitted for earn processing from properties and Group Posting Tool can be used for upstream validations.
+2. Integrations layer through TIP can handle the consumption of stay data from Group Posting Tool and format in a way that CLM can accept and process the request.
+3. CLM can consume the request from TIP and process in the same way stay transactions are processed providing disposition and data capture in the same way.
+4. Downstream consumption will function as is based on current structure
+
+Not In Scope
+
+*  Configure for 3 decimals (Partners requirement: To align with the Rewarding Events earn structure of 1 mile per $1 USD, the correct equivalent earn rate for Air New Zealand should be 0.015 Airpoints Dollars per $1 USD. Under the current system configuration, members who have elected Air New Zealand are earning 1 Airpoints Dollar per $1 USD, which is equivalent to 66.67 miles per $1 USD. This creates a significant cost issue for the program, as hotels only fund the earn based on the 1‑mile‑equivalent value (i.e., 0.015 Airpoints Dollars per $1 USD). We have requested that the earn configuration for Air New Zealand Rewarding Events be updated from 1.00 to 0.015, but were informed that the system currently supports only two decimal places.)
+
+### Business Use Cases
+
+| Scenario | Details | Expected Outcome |
+| --- | --- | --- |
+| BL-1: Event submitted for a participating brand (e.g., Marriott Hotels) | Gold Elite member, $70,000 qualifying spend at a Marriott Hotels property | Earn request is accepted; points calculated and TJ created normally |
+| BL-2: Event submitted for a non-participating brand (e.g., Residence Inn) | Silver Elite member, $50,000 qualifying spend at a Residence Inn property | Earn request is rejected with validation error; no TJ created |
+| BL-3: Split event where property belongs to a non-participating brand (e.g., Design Hotels) | Two members attempt a 50/50 split at a Design Hotels property | Earn request is rejected for both members with validation error; no TJs created |
+| AE-1: Ambassador Elite member completes a Bonvoy Event | $300,000 qualifying spend; member has $15,000 existing Ambassador spend | Ambassador spend tracker remains at $15,000; event spend is not added |
+| AE-2: GET profile call for an Ambassador member with Bonvoy Event history | Member has $10,000 stay spend + $70,000 event spend | Profile returns $10,000 as Ambassador qualified spend; event spend excluded |
+| AE-3: Split event for Ambassador member | 50/50 split, $200,000 total qualifying spend | Neither member's $100,000 share counts toward Ambassador spend |
+| SOA-1: Single member points earn | Gold Elite, $70,000 spend, 60,000 base + 15,000 elite bonus = 75,000 points | SOA shows one "Event" line item: 75,000 points with base/bonus breakdown |
+| SOA-2: Single member miles earn | Member with United Airlines preference, $50,000 spend | SOA shows one "Event" line item with miles amount and Partner Airline |
+| SOA-3: Split event | Two members, 50/50 split | Each member's SOA shows only their 50% share as a separate "Event" line item |
+| SOA-4: Event with property-purchased bonus | Gold Elite, $70,000 spend + 10,000 bonus points from property | SOA line item reflects base earn, elite bonus, and property bonus separately |
+| PE-1: Single member event earn (points) | Titanium Elite, $300,000 spend, 105,000 points + 5 EQN | One Platform Event published with type "Event", 105,000 points, 5 EQN, no Ambassador spend |
+| PE-2: Split event | Two members, 50/50 split | Two separate Platform Events published, one per member, each with their respective earn share |
+| PE-3: Miles earning event | Member with miles preference, 15,000 miles earned | Platform Event reflects miles as the earning currency with correct airline multiplier values |
+| V-1: Non-participating brand | Event at TownePlace Suites | Rejected with brand validation error; no TJ |
+| V-2: Base earn exceeds max | $500,000 spend → 1,000,000 raw base points, exceeds 60,000 cap | CLM caps at 60,000 base points + elite bonus; posts max; returns "over max" message |
+| V-3: Combined points exceed 200K | 60,000 base + 45,000 elite bonus + 100,000 property bonus + double points = 265,000 | Rejected with "cannot exceed 200,000" error showing 65,000 overage; no TJ; property must adjust and resubmit |
+| V-4: Combined points within 200K | 60,000 base + 15,000 elite bonus + 10,000 property bonus = 85,000 | Passes all validations; TJ created and posted |
+| V-5: Split scenario exceeds max per member | 50/50 split, one member's share calculates to 120,000 points (above 30,000 base cap for split) | CLM caps at 30,000 base + elite bonus per member; posts max; returns "over max" message |
+
+Linked Issues / Dependencies:
+- Relates (Relates to): LYLT-363 - Earn | P1 | Points Calculations: Marriott Bonvoy Events Part 1 (SF Configuration) [In Progress]
+- Dependency (Successors): LYLT-18896 - MBT | P1 | SF Integrations | Tier Management: Marriott Bonvoy Events - Exception Processing for Ambassador Elite Tier [Refinement]
+- Cloners (Is cloned by): LYLT-21350 - Earn | P1 | Points Calculations: Marriott Bonvoy Events Part 3 (SF Configuration) [Backlog]
+
+==========================================================================================
+LYLT-21649 - Q3 | P1 | Earn RBAC Service Operations Group: Cancel MI Bonvoy Event Transaction in CLM (SF Configuration)
+==========================================================================================
+Issue Type: Epic
+Status: Backlog
+Priority: Critical or Must Have
+Assignee: Marcus Forbes
+Reporter: Marcus Forbes
+Created By: Marcus Forbes
+Created Date: 2026-06-03
+Last Updated: 2026-06-04
+Target End Date: 2027-03-03
+Parent: MGPP-1274 - LYLT: Foundational | Salesforce Role-Based Access Controls (RBAC)
+Labels: earn_replat, earn_replat_p1
+
+Description:
+NEEDS REFINEMENT
+
+Epic Details
+
+Enable Service Operation users, via RBAC controlled permissions in CLM, to cancel MI Bonvoy Event transactions using a soft delete model, ensuring full audit traceability and downstream consistency without physical deletion of records.  
+
+### Core Functional Behavior
+
+Cancellation Definition
+
+* Cancel = Soft Delete
+
+    * Original transaction is retained
+    * Status updated to Cancelled in CLM
+    * Downstream systems reflect cancellation
+    * Audit and reporting preserved
+    
+
+Functionality
+
+* Only Service / Operations Group users can cancel MI Bonvoy Event transactions
+* Permissions are explicitly assigned via RBAC roles
+* No access granted to:
+
+    * CEC associates
+    * End users / member-facing roles
+    * Non-operations internal users
+    
+* Implement event-specific lifecycle controls: Points from posted transaction are credited back to the member’s account.
+
+    * Reverse Transaction Journal entry - reflects the reversal, status updated accordingly.  
+    * Refund confirmation is returned with updated balance details.
+    
+
+### In Scope
+
+* RBAC-controlled access for Operations group
+* Cancel (soft delete) MI Bonvoy Event transactions in CLM
+* Update transaction lifecycle status → “Cancelled”
+* Credit points posted back to member account
+* Ensure downstream propagation of cancel state (TIP, reporting, audit)
+* Maintain full audit trail (no physical deletion)
+
+### Out of Scope (P1)
+
+* Re-post / modify / recreate event transactions
+* Bulk cancellation
+* UI redesign beyond minimum viable ops workflow
+* Changes to earning calculation logic
+
+Dependencies (if applicable) 
+
+1. Impacted systems: CLM
+2. High-level dependencies: 
+
+    1. Foundational Setup of User Groups in CLM
+    2. Reporting layer must interpret cancelled events correctly
+    
+
+<custom data-type="emoji" data-id="id-0">:question_mark:</custom> Open Questions
+
+* Open Questions added for backlog refinement:
+
+    * Is a "Reason for Cancellation" field required or optional?
+    * Which specific downstream systems need notification on cancel?
+    * Should cancelled transactions be included/excluded from standard reports by default?
+    * Is there a time-based restriction on when a transaction can be cancelled?
+    * Can cancellation occur if member earning preference is miles?
+    * What's the expected behavior if the member's current balance is less than the reversal amount? Block the cancel, allow negative balance, or escalate?
+    * Should the refund confirmation (AC14) also be surfaced to the member, or is it internal/operations-only?
+    * Does the reversal need to account for members whose earning preference is miles rather than points?
+    
+
+Assumptions (if applicable) 
+
+1. Associates with Empower CEC agent access do not automatically need CLM access.
+2. Empower CEC agents have view only access in Empower.  Cannot make any adjustments. 
+3. Business user access will be granted further down in deployment.  Business will not have immediate access to CLM at launch. 
+
+Business Use Case 
+
+* Operations Group Responsibilities
+
+    * Cancel an MI Bonvoy Event transaction
+    * See the reversal of points in CLM
+    
+* Exception Handling Dashboard management within CLM.
+
+Linked Issues / Dependencies:
+- Cloners (Clones): LYLT-12756 - Q | P1 | Earn RBAC Operations Group: Add Paid Stay in CLM (SF Configuration) [In Progress]
+
+==========================================================================================
+LYLT-355 - Earn | P1 | CLM Points Expiration (SF Configuration) Q3 Dependency
+==========================================================================================
+Issue Type: Epic
+Status: Plan
+Priority: Critical or Must Have
+Assignee: Marcus Forbes
+Reporter: josh.s.blair
+Created By: Hasan Syed
+Created Date: 2025-04-02
+Last Updated: 2026-06-05
+Target End Date: 2027-03-03
+Parent: MGPP-1078 - LYLT - Earn: Earn Management Rules and Eligibility
+Labels: earn_replat, earn_replat_p1
+
+Description:
+Epic Description
+
+Configure and manage the points expiration rules based on the source of points earned. Create a flexible and dynamic framework that can handle various sources of points, such as purchases, promotions, referrals, and more—each with its own set of expiration rules. This framework will give member’s transparency into when points earned from different sources will expire, allowing them to redeem more efficiently and expediently.
+
+Current State P1: 24 consecutive month expiry system based on member activity
+
+* No change to expiration duration or inactivity logic
+* Single expiration policy applied uniformly across all point sources
+* Configuration framework enabled for future source-specific expiration rules
+
+Note: For P1, the points expiration policy will not change from the current program rules.  All points, regardless of source, will expire after 24 consecutive months or member inactivity, consistent with today’s policy.  As part of this Epic, Salesforce will implement point source bucketing in CLM with a uniform expiration model applied across all buckets for P1.  While the expiration behavior will be the same for all sources at launch, the solution must be configurable, ensuring CLM can support future differentiation of expiration rules by point source without requiring data migration or re-processing of member balances.
+
+Future State (Out of Scope) P2: Rules by source for specific expiration policy
+
+Epic Details
+
+Build a bucket‑based expiration framework in Salesforce where all point sources share a single consecutive 24‑month inactivity expiration rule in P1, implemented via configuration so future source‑specific expiration policies can be enabled without data or code rework.
+
+CLM SF Configuration requirements:  To be worked on in parallel with https://marriottcloud.atlassian.net/browse/LYLT-356 
+
+1. Implement one global expiration rule applicable to all point sources.
+
+    1. 24 consecutive months of member inactivity
+    2. Inactivity definition remains unchanged
+    3. Applies to all points regardless of source
+    
+        1. Expiration behavior by bucket in P1 shall not differentiate
+        2. The expiration rules shall not branch logic by source for P1
+        
+    
+2. Expiration configuration must be source configurable (Future-Proofing)
+
+    1. Expiration rules shall be stored in a way that allows:
+    
+        1. Mapping one expiration model to multiple source buckets (P1)
+        2. Mapping different expiration models to different buckets (P2)
+        
+    2. No schema or data migration shall be required to:
+    
+        1. change expiration duration
+        2. Assign different expiration rules per bucket
+        
+    3. Bucket-to-expiration mapping shall be configuration driven
+    
+3. Expiration evaluation at transaction/bucket level
+
+    1. Expiration shall be calculated using:
+    
+        1. Transaction date
+        2. Member inactivity signals
+        3. Associated bucket
+        
+    2. CLM shall preserve point source attribution through expiration
+    3. Expired points shall be traceable back to:
+    
+        1. Original bucket
+        2. Original earn transaction
+        
+    
+4. Expiration logic must not break when points are adjusted
+
+    1. Reversed or adjusted points shall:
+    
+        1. retain original bucket association (where applicable)
+        2. Should not corrupt remaining bucket balances
+        
+    2. Expiration logic shall evaluate adjusted points consistently with P1 policy.
+    
+5. Expose expiration behavior transparently
+
+    1. Expired point records shall retain:
+    
+        1. source bucket
+        2. expiration reason (inactivity)
+        3. expiration date
+        
+    2. Reporting shall support aggregation by:
+    
+        1. Total points expired
+        2. Source bucket (even though behavior is uniform in P1)
+        
+    3. RBAC/Audit users shall be able to trace:
+    
+        1. Earn → bucket → expiration
+        
+    
+
+Expiration date execution:
+
+Points will expire in the system and no longer be available to member when said points reach the expiration date. Member will still retain any points that have not yet reached expiration and will see the expiration and remaining points reflected in their account details. Member can view in their account page when their points will expire.
+
+Assumptions (if applicable)
+
+* Configurable for changes - expiry model changes, activity type grouping changes or rules change.
+* MVW (Post-Spinoff vs Pre-Spinoff) buckets will be carried over and maintained in CLM.
+
+Out-of-Scope
+
+* Point Expiration needs to be based on type of activity and tier
+
+    Ex 1. Points earned via a specific activity expire in 3 months
+
+    Ex 2. Ambassador Tier Member gets 3 years before their points expire due to inactivity
+
+    Ex 3. Points earned via Promo expire in 6 months
+
+Business Use Cases (The Life of a Point)
+
+* Point Based Earn - 24 consecutive month policy
+
+    * Stay processing earn
+    * Adjustment of Points, automatic or manual.
+    
+* (P2) Promotion Based Earn in points - Configurable policy  <=24 consecutive months
+
+Dependencies
+
+* Qualifying activity definition built out in CLM across Loyalty.
+* Deactivating account definition built out in CLM.
+
+> Current Bonvoy Points Expiration Policy
+>
+> 1.6.d. _Points Expiration Policy_. Members must remain active in the Loyalty Program to retain Points they accumulate. If a Member Account is inactive for twenty-four (24) consecutive months, that Member Account will forfeit all accumulated Points. Members can remain active in the Loyalty Program and retain accumulated Points by earning Points or Miles, redeeming Points, or purchasing Points (as described in 2.9) in the Loyalty Program at least once every twenty-four (24) months, all subject to the exceptions described below. If a Member does not maintain an active status for five (5) consecutive years, the Member’s Account may be deactivated. Once Points are forfeited, the Points cannot be reinstated, but a Member can earn new Points, unless that Member’s Account has been deactivated.
+>
+>  i. Not all Points activities help maintain active status in the Loyalty Program. Examples of activities that do not count toward maintaining an active status in the Loyalty Program include, but are not limited to:
+>
+>  A. Gifting or transferring Points;
+>
+>  B. Receiving Points as a gift or transfer
+>
+>  ii. Converting Points to Miles or Miles to Points counts toward maintaining an active status. Members can also remain active by converting Points to other designated partners or converting from designated partners to Points (as described in Section 2.10).
+>
+>  iii. Awards redeemed by a Member prior to Point forfeiture are still valid even though the Award may not yet have been fulfilled at the time of Point forfeiture. However, if those Awards are cancelled after the Points expiration date, those Points are still subject to forfeiture. For example, if a Member redeems Points for an Award Redemption Stay that occurs after the Points expiration date, and then cancels the reservation prior to arrival without having completed any qualifying activity to extend the expiration date, those Points will expire.
+>
+>  iv. The Points expiration policy does not currently affect Points in a Lifetime Elite Membership Account; however, the Loyalty Program may choose to apply a Points expiration policy to Lifetime Elite Membership Accounts in the future.
+
+Linked Issues / Dependencies:
+- Relates (Relates to): LYLT-86 - EM7: Earn - points expiration rules [Backlog]
+- Relates (Relates to): LYLT-504 - Loyalty Foundations | Loyalty Earned Currencies [Done]
+- Relates (Relates to): LYLT-1571 - Redeem | P1 | SF Integrations | Rules Management: Source Bucket Management [Plan]
+- Cloners (Is cloned by): LYLT-10444 - Earn | P1 | Integration with TIP for Stay Processing of Standardized Stay File with ACRS or MARSHA attributes [Backlog]
+- Relates (Relates to): LYLT-409 - Redeem | P1 | SF Integrations | Redemption Tracking: Deferred Fulfillment for Room Reservation [Plan]
+- Dependency (Predecessors): LYLT-1571 - Redeem | P1 | SF Integrations | Rules Management: Source Bucket Management [Plan]
+- Issue Split (Split From): LYLT-356 - Earn | P1 | CLM Point Source Tracking Management (SF Configuration) Q3 Dependency [Plan]

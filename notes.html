@@ -1,0 +1,854 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>My Notes</title>
+  <style>
+    :root {
+      --bg: #f3f4f6;
+      --surface: #ffffff;
+      --text: #111827;
+      --muted: #6b7280;
+      --primary: #2563eb;
+      --primary-hover: #1d4ed8;
+      --danger: #dc2626;
+      --danger-hover: #b91c1c;
+      --border: #e5e7eb;
+      --shadow: 0 10px 30px rgba(17, 24, 39, 0.08);
+      --radius: 14px;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+      color: var(--text);
+      background: linear-gradient(160deg, #eef2ff 0%, #f8fafc 45%, #ecfeff 100%);
+      display: grid;
+      place-items: center;
+      padding: 20px;
+    }
+
+    .app {
+      width: min(900px, 100%);
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: clamp(16px, 3vw, 28px);
+    }
+
+    .layout {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 280px;
+      gap: 18px;
+      align-items: start;
+    }
+
+    h1 {
+      margin: 0 0 12px;
+      font-size: clamp(1.5rem, 2.4vw, 2rem);
+      letter-spacing: -0.02em;
+    }
+
+    .sr-only {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
+      border: 0;
+    }
+
+    .hint {
+      margin: 0 0 16px;
+      color: var(--muted);
+      font-size: 0.95rem;
+    }
+
+    .list-controls {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+
+    .list-picker {
+      display: grid;
+      grid-template-columns: 1fr;
+      margin-bottom: 10px;
+    }
+
+    .list-edit {
+      display: grid;
+      grid-template-columns: 1fr auto auto;
+      gap: 8px;
+      margin-bottom: 14px;
+    }
+
+    input,
+    select {
+      width: 100%;
+      height: 42px;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      padding: 0 12px;
+      font: inherit;
+      color: var(--text);
+      background: #fff;
+      outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+
+    input:focus,
+    select:focus {
+      border-color: #93c5fd;
+      box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.15);
+    }
+
+    .editor-wrap {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      background: #fff;
+      overflow: hidden;
+    }
+
+    .toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      padding: 10px;
+      border-bottom: 1px solid var(--border);
+      background: #f8fafc;
+    }
+
+    .tool-btn {
+      background: #e2e8f0;
+      color: #1f2937;
+      padding: 8px 10px;
+      font-size: 0.85rem;
+      border-radius: 8px;
+    }
+
+    .tool-btn:hover {
+      background: #cbd5e1;
+    }
+
+    .editor {
+      width: 100%;
+      min-height: 120px;
+      padding: 12px 14px;
+      font: inherit;
+      color: var(--text);
+      outline: none;
+      line-height: 1.45;
+      transition: box-shadow 0.2s;
+      background: #fff;
+    }
+
+    .editor:empty:before {
+      content: attr(data-placeholder);
+      color: #9ca3af;
+    }
+
+    .editor-wrap:focus-within {
+      box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.15);
+    }
+
+    .actions {
+      display: flex;
+      gap: 8px;
+      justify-content: flex-end;
+      margin-top: 12px;
+    }
+
+    button {
+      border: 0;
+      border-radius: 10px;
+      padding: 10px 14px;
+      font-weight: 600;
+      font-size: 0.95rem;
+      cursor: pointer;
+      transition: transform 0.05s ease, background-color 0.2s ease, opacity 0.2s ease;
+    }
+
+    button:active {
+      transform: translateY(1px);
+    }
+
+    .add-btn {
+      background: var(--primary);
+      color: #fff;
+    }
+
+    .add-btn:hover {
+      background: var(--primary-hover);
+    }
+
+    .secondary-btn {
+      background: #dbeafe;
+      color: #1e40af;
+    }
+
+    .secondary-btn:hover {
+      background: #bfdbfe;
+    }
+
+    .notes-title {
+      margin: 20px 0 10px;
+      font-size: 1.05rem;
+      color: var(--muted);
+      font-weight: 600;
+    }
+
+    .empty {
+      margin: 0;
+      border: 1px dashed var(--border);
+      border-radius: 12px;
+      padding: 16px;
+      color: var(--muted);
+      text-align: center;
+      background: #fafafa;
+    }
+
+    .notes-list {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+      display: grid;
+      gap: 10px;
+    }
+
+    .note-item {
+      display: flex;
+      gap: 10px;
+      align-items: flex-start;
+      justify-content: space-between;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 12px;
+      background: #fff;
+    }
+
+    .note-text {
+      margin: 0;
+      word-break: break-word;
+      line-height: 1.45;
+      flex: 1;
+    }
+
+    .note-text ul {
+      margin: 8px 0;
+      padding-left: 20px;
+    }
+
+    .check-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin: 4px 0;
+    }
+
+    .check-row input[type="checkbox"] {
+      width: 16px;
+      height: 16px;
+      accent-color: #2563eb;
+    }
+
+    .delete-btn {
+      background: #fee2e2;
+      color: var(--danger);
+      padding: 8px 10px;
+      flex-shrink: 0;
+    }
+
+    .delete-btn:hover {
+      background: #fecaca;
+      color: var(--danger-hover);
+    }
+
+    .edit-btn {
+      background: #e0e7ff;
+      color: #3730a3;
+      padding: 8px 10px;
+      flex-shrink: 0;
+    }
+
+    .edit-btn:hover {
+      background: #c7d2fe;
+    }
+
+    .note-actions {
+      display: flex;
+      gap: 8px;
+      flex-shrink: 0;
+    }
+
+    .sidebar {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 12px;
+      background: #fcfcfd;
+      max-height: 70vh;
+      overflow: auto;
+    }
+
+    .sidebar h2 {
+      margin: 0 0 10px;
+      font-size: 1rem;
+      color: #374151;
+    }
+
+    .history-controls {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 8px;
+      margin-bottom: 10px;
+    }
+
+    .undo-btn {
+      background: #fde68a;
+      color: #92400e;
+      padding: 8px 10px;
+      font-size: 0.85rem;
+    }
+
+    .undo-btn:hover {
+      background: #fcd34d;
+    }
+
+    .history-list {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+      display: grid;
+      gap: 8px;
+    }
+
+    .history-item {
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 8px;
+      background: #fff;
+    }
+
+    .history-text {
+      margin: 0;
+      font-size: 0.9rem;
+    }
+
+    .history-time {
+      margin: 4px 0 0;
+      color: var(--muted);
+      font-size: 0.76rem;
+    }
+
+    @media (max-width: 600px) {
+      .layout {
+        grid-template-columns: 1fr;
+      }
+
+      .list-controls {
+        grid-template-columns: 1fr;
+      }
+
+      .list-edit {
+        grid-template-columns: 1fr;
+      }
+
+      .note-item {
+        flex-direction: column;
+      }
+
+      .delete-btn {
+        align-self: flex-end;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="app">
+    <div class="layout">
+      <section>
+        <h1>My Notes</h1>
+        <p class="hint">Create lists, edit them, and track what changed in history.</p>
+
+        <div class="list-controls">
+          <label for="newListInput" class="sr-only">New list name</label>
+          <input id="newListInput" type="text" placeholder="Create a new list (e.g. Work)">
+          <button id="addListBtn" class="secondary-btn" type="button">Create List</button>
+        </div>
+
+        <div class="list-picker">
+          <label for="listSelect" class="sr-only">Select list</label>
+          <select id="listSelect"></select>
+        </div>
+
+        <div class="list-edit">
+          <label for="editListInput" class="sr-only">Edit selected list name</label>
+          <input id="editListInput" type="text" placeholder="Rename selected list">
+          <button id="saveListBtn" class="secondary-btn" type="button">Save Name</button>
+          <button id="deleteListBtn" class="delete-btn" type="button">Delete List</button>
+        </div>
+
+        <label for="noteEditor" class="sr-only">Note editor</label>
+        <div class="editor-wrap">
+          <div class="toolbar">
+            <button class="tool-btn" type="button" data-cmd="bold">Bold</button>
+            <button class="tool-btn" type="button" data-cmd="italic">Italic</button>
+            <button class="tool-btn" type="button" data-cmd="underline">Underline</button>
+            <button class="tool-btn" type="button" data-cmd="insertUnorderedList">Bullets</button>
+            <button class="tool-btn" id="checklistBtn" type="button">Checkbox</button>
+          </div>
+          <div id="noteEditor" class="editor" contenteditable="true" data-placeholder="Type your note here..."></div>
+        </div>
+
+        <div class="actions">
+          <button id="cancelEditBtn" class="secondary-btn" type="button" hidden>Cancel Edit</button>
+          <button id="addBtn" class="add-btn" type="button">Add Note</button>
+        </div>
+
+        <p class="notes-title">Your notes</p>
+        <section id="notesContainer"></section>
+      </section>
+
+      <aside class="sidebar">
+        <h2>History</h2>
+        <div class="history-controls">
+          <select id="historyFilter">
+            <option value="all">All activity</option>
+            <option value="list">List actions</option>
+            <option value="note">Note actions</option>
+          </select>
+          <button id="undoBtn" class="undo-btn" type="button">Undo</button>
+        </div>
+        <ul id="historyList" class="history-list"></ul>
+      </aside>
+    </div>
+  </main>
+
+  <script>
+    const STORAGE_KEY = "my-notes-data-v1";
+    const DEFAULT_LIST_NAME = "General";
+    const ALLOWED_TAGS = new Set(["B", "I", "U", "BR", "DIV", "P", "UL", "OL", "LI", "SPAN", "LABEL", "INPUT"]);
+    const ALLOWED_ATTRS = new Set(["class", "type", "checked"]);
+    const newListInput = document.getElementById("newListInput");
+    const addListBtn = document.getElementById("addListBtn");
+    const listSelect = document.getElementById("listSelect");
+    const editListInput = document.getElementById("editListInput");
+    const saveListBtn = document.getElementById("saveListBtn");
+    const deleteListBtn = document.getElementById("deleteListBtn");
+    const noteEditor = document.getElementById("noteEditor");
+    const checklistBtn = document.getElementById("checklistBtn");
+    const addBtn = document.getElementById("addBtn");
+    const cancelEditBtn = document.getElementById("cancelEditBtn");
+    const notesContainer = document.getElementById("notesContainer");
+    const historyList = document.getElementById("historyList");
+    const historyFilter = document.getElementById("historyFilter");
+    const undoBtn = document.getElementById("undoBtn");
+    const toolbarButtons = Array.from(document.querySelectorAll("[data-cmd]"));
+    let editingNote = null;
+
+    function sanitizeHtml(rawHtml) {
+      const template = document.createElement("template");
+      template.innerHTML = rawHtml;
+      const nodes = Array.from(template.content.querySelectorAll("*"));
+
+      nodes.forEach((node) => {
+        if (!ALLOWED_TAGS.has(node.tagName)) {
+          node.replaceWith(...node.childNodes);
+          return;
+        }
+
+        Array.from(node.attributes).forEach((attr) => {
+          if (!ALLOWED_ATTRS.has(attr.name)) {
+            node.removeAttribute(attr.name);
+          }
+        });
+
+        if (node.tagName === "INPUT") {
+          if (node.getAttribute("type") !== "checkbox") {
+            node.remove();
+            return;
+          }
+          if (node.hasAttribute("checked")) {
+            node.setAttribute("checked", "");
+          }
+          node.setAttribute("disabled", "");
+        }
+
+        if (node.tagName === "LABEL") {
+          node.classList.add("check-row");
+        }
+      });
+
+      return template.innerHTML.trim();
+    }
+
+    function editorHasContent() {
+      const text = noteEditor.textContent.replace(/\u00a0/g, " ").trim();
+      return text.length > 0 || noteEditor.querySelector("input[type='checkbox']");
+    }
+
+    function createDefaultState() {
+      return {
+        activeListId: "list-general",
+        lists: [{ id: "list-general", name: DEFAULT_LIST_NAME, notes: [] }],
+        history: [],
+        snapshots: []
+      };
+    }
+
+    function normalizeState(data) {
+      if (!data || !Array.isArray(data.lists) || data.lists.length === 0) {
+        return createDefaultState();
+      }
+
+      const lists = data.lists
+        .filter((list) => list && typeof list.name === "string")
+        .map((list) => ({
+          id: typeof list.id === "string" && list.id.trim() ? list.id : crypto.randomUUID(),
+          name: list.name.trim() || "Untitled List",
+          notes: Array.isArray(list.notes)
+            ? list.notes
+              .filter((n) => typeof n === "string")
+              .map((n) => sanitizeHtml(n))
+              .filter(Boolean)
+            : []
+        }));
+
+      if (!lists.length) return createDefaultState();
+
+      const activeListExists = lists.some((list) => list.id === data.activeListId);
+      const history = Array.isArray(data.history)
+        ? data.history
+          .filter((entry) => entry && typeof entry.text === "string" && typeof entry.time === "string" && typeof entry.kind === "string")
+          .slice(0, 40)
+        : [];
+      const snapshots = Array.isArray(data.snapshots)
+        ? data.snapshots
+          .filter((snap) => snap && snap.state && typeof snap.text === "string")
+          .slice(0, 30)
+        : [];
+      return {
+        activeListId: activeListExists ? data.activeListId : lists[0].id,
+        lists,
+        history,
+        snapshots
+      };
+    }
+
+    function loadState() {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if (!raw) return createDefaultState();
+      try {
+        const parsed = JSON.parse(raw);
+        return normalizeState(parsed);
+      } catch {
+        return createDefaultState();
+      }
+    }
+
+    function saveState(state) {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    }
+
+    function getActiveList(state) {
+      return state.lists.find((list) => list.id === state.activeListId) || state.lists[0];
+    }
+
+    function renderListPicker(state) {
+      listSelect.innerHTML = "";
+      state.lists.forEach((list) => {
+        const option = document.createElement("option");
+        option.value = list.id;
+        option.textContent = list.name;
+        listSelect.appendChild(option);
+      });
+      const activeList = getActiveList(state);
+      listSelect.value = activeList.id;
+      editListInput.value = activeList.name;
+    }
+
+    function addSnapshot(state, text, kind) {
+      const stateCopy = JSON.parse(JSON.stringify({
+        activeListId: state.activeListId,
+        lists: state.lists,
+        history: state.history
+      }));
+      state.snapshots.unshift({ text, kind, state: stateCopy });
+      state.snapshots = state.snapshots.slice(0, 30);
+    }
+
+    function addHistory(state, text, kind) {
+      state.history.unshift({
+        id: crypto.randomUUID(),
+        text,
+        kind,
+        time: new Date().toLocaleString()
+      });
+      state.history = state.history.slice(0, 40);
+    }
+
+    function renderHistory(state) {
+      historyList.innerHTML = "";
+      const filterValue = historyFilter.value;
+      const visibleHistory = state.history.filter((entry) => filterValue === "all" || entry.kind === filterValue);
+
+      if (!visibleHistory.length) {
+        const item = document.createElement("li");
+        item.className = "history-item";
+        item.innerHTML = "<p class=\"history-text\">No activity yet.</p>";
+        historyList.appendChild(item);
+        return;
+      }
+
+      visibleHistory.forEach((entry) => {
+        const item = document.createElement("li");
+        item.className = "history-item";
+        item.innerHTML = "<p class=\"history-text\"></p><p class=\"history-time\"></p>";
+        item.querySelector(".history-text").textContent = entry.text;
+        item.querySelector(".history-time").textContent = entry.time;
+        historyList.appendChild(item);
+      });
+    }
+
+    function renderNotes(state) {
+      notesContainer.innerHTML = "";
+      const activeList = getActiveList(state);
+
+      if (!activeList.notes.length) {
+        const empty = document.createElement("p");
+        empty.className = "empty";
+        empty.textContent = "No notes in this list yet.";
+        notesContainer.appendChild(empty);
+        return;
+      }
+
+      const list = document.createElement("ul");
+      list.className = "notes-list";
+
+      activeList.notes.forEach((note, index) => {
+        const item = document.createElement("li");
+        item.className = "note-item";
+
+        const text = document.createElement("div");
+        text.className = "note-text";
+        text.innerHTML = sanitizeHtml(note);
+        text.querySelectorAll("input[type='checkbox']").forEach((checkbox) => {
+          checkbox.removeAttribute("disabled");
+          checkbox.addEventListener("change", () => {
+            activeList.notes[index] = sanitizeHtml(text.innerHTML);
+            addHistory(state, "Updated checklist in a note", "note");
+            saveState(state);
+            renderHistory(state);
+          });
+        });
+
+        const actions = document.createElement("div");
+        actions.className = "note-actions";
+
+        const editBtn = document.createElement("button");
+        editBtn.className = "edit-btn";
+        editBtn.type = "button";
+        editBtn.textContent = "Edit";
+        editBtn.addEventListener("click", () => {
+          noteEditor.innerHTML = activeList.notes[index];
+          editingNote = { listId: activeList.id, noteIndex: index };
+          addBtn.textContent = "Save Note";
+          cancelEditBtn.hidden = false;
+          noteEditor.focus();
+        });
+
+        const deleteBtn = document.createElement("button");
+        deleteBtn.className = "delete-btn";
+        deleteBtn.type = "button";
+        deleteBtn.textContent = "Delete";
+        deleteBtn.addEventListener("click", () => {
+          addSnapshot(state, `Deleted a note from "${activeList.name}"`, "note");
+          activeList.notes.splice(index, 1);
+          addHistory(state, `Deleted a note from "${activeList.name}"`, "note");
+          saveState(state);
+          renderNotes(state);
+          renderHistory(state);
+        });
+
+        actions.append(editBtn, deleteBtn);
+        item.append(text, actions);
+        list.appendChild(item);
+      });
+
+      notesContainer.appendChild(list);
+    }
+
+    function render(state) {
+      renderListPicker(state);
+      renderNotes(state);
+      renderHistory(state);
+      undoBtn.disabled = !state.snapshots.length;
+      if (editingNote) {
+        const activeList = getActiveList(state);
+        if (!editingNote || editingNote.listId !== activeList.id) {
+          cancelEditing();
+        }
+      }
+    }
+
+    const state = loadState();
+    render(state);
+
+    function addList() {
+      const name = newListInput.value.trim();
+      if (!name) return;
+
+      const exists = state.lists.some((list) => list.name.toLowerCase() === name.toLowerCase());
+      if (exists) return;
+
+      const newList = {
+        id: crypto.randomUUID(),
+        name,
+        notes: []
+      };
+
+      addSnapshot(state, `Created list "${name}"`, "list");
+      state.lists.push(newList);
+      state.activeListId = newList.id;
+      addHistory(state, `Created list "${name}"`, "list");
+      saveState(state);
+      render(state);
+      newListInput.value = "";
+      newListInput.focus();
+    }
+
+    function cancelEditing() {
+      editingNote = null;
+      addBtn.textContent = "Add Note";
+      cancelEditBtn.hidden = true;
+      noteEditor.innerHTML = "";
+    }
+
+    function addNote() {
+      if (!editorHasContent()) return;
+      const value = sanitizeHtml(noteEditor.innerHTML);
+      if (!value) return;
+
+      const activeList = getActiveList(state);
+      if (editingNote && editingNote.listId === activeList.id) {
+        if (editingNote.noteIndex < 0 || editingNote.noteIndex >= activeList.notes.length) {
+          cancelEditing();
+          return;
+        }
+        addSnapshot(state, `Edited a note in "${activeList.name}"`, "note");
+        activeList.notes[editingNote.noteIndex] = value;
+        addHistory(state, `Edited a note in "${activeList.name}"`, "note");
+        cancelEditing();
+      } else {
+        addSnapshot(state, `Added a note to "${activeList.name}"`, "note");
+        activeList.notes.push(value);
+        addHistory(state, `Added a note to "${activeList.name}"`, "note");
+      }
+      saveState(state);
+      renderNotes(state);
+      renderHistory(state);
+      undoBtn.disabled = !state.snapshots.length;
+      noteEditor.innerHTML = editingNote ? noteEditor.innerHTML : "";
+      noteEditor.focus();
+    }
+
+    function renameList() {
+      const activeList = getActiveList(state);
+      const nextName = editListInput.value.trim();
+      if (!nextName) return;
+      if (activeList.name === nextName) return;
+      const exists = state.lists.some((list) => list.id !== activeList.id && list.name.toLowerCase() === nextName.toLowerCase());
+      if (exists) return;
+      const previous = activeList.name;
+      addSnapshot(state, `Renamed list "${previous}" to "${nextName}"`, "list");
+      activeList.name = nextName;
+      addHistory(state, `Renamed list "${previous}" to "${nextName}"`, "list");
+      saveState(state);
+      render(state);
+    }
+
+    function removeList() {
+      if (state.lists.length === 1) return;
+      const activeList = getActiveList(state);
+      const approved = window.confirm(`Delete list "${activeList.name}" and all notes in it?`);
+      if (!approved) return;
+      addSnapshot(state, `Deleted list "${activeList.name}"`, "list");
+      state.lists = state.lists.filter((list) => list.id !== activeList.id);
+      state.activeListId = state.lists[0].id;
+      addHistory(state, `Deleted list "${activeList.name}"`, "list");
+      saveState(state);
+      cancelEditing();
+      render(state);
+    }
+
+    function undoLastAction() {
+      const last = state.snapshots.shift();
+      if (!last) return;
+      state.activeListId = last.state.activeListId;
+      state.lists = JSON.parse(JSON.stringify(last.state.lists));
+      state.history = JSON.parse(JSON.stringify(last.state.history));
+      addHistory(state, `Undid: ${last.text}`, last.kind);
+      saveState(state);
+      cancelEditing();
+      render(state);
+    }
+
+    addListBtn.addEventListener("click", addList);
+    newListInput.addEventListener("keydown", (event) => {
+      if (event.key === "Enter") {
+        addList();
+      }
+    });
+
+    listSelect.addEventListener("change", () => {
+      state.activeListId = listSelect.value;
+      addHistory(state, `Switched to list "${getActiveList(state).name}"`, "list");
+      saveState(state);
+      render(state);
+    });
+
+    saveListBtn.addEventListener("click", renameList);
+    editListInput.addEventListener("keydown", (event) => {
+      if (event.key === "Enter") renameList();
+    });
+    deleteListBtn.addEventListener("click", removeList);
+    historyFilter.addEventListener("change", () => renderHistory(state));
+    undoBtn.addEventListener("click", undoLastAction);
+    cancelEditBtn.addEventListener("click", () => {
+      cancelEditing();
+      noteEditor.focus();
+    });
+
+    addBtn.addEventListener("click", addNote);
+    noteEditor.addEventListener("keydown", (event) => {
+      if ((event.ctrlKey || event.metaKey) && event.key === "Enter") {
+        addNote();
+      }
+    });
+
+    toolbarButtons.forEach((button) => {
+      button.addEventListener("click", () => {
+        document.execCommand(button.dataset.cmd, false);
+        noteEditor.focus();
+      });
+    });
+
+    checklistBtn.addEventListener("click", () => {
+      const html = "<label class=\"check-row\"><input type=\"checkbox\"> <span>Checklist item</span></label><br>";
+      document.execCommand("insertHTML", false, html);
+      noteEditor.focus();
+    });
+  </script>
+</body>
+</html>

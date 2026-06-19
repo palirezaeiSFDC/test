@@ -1,0 +1,53 @@
+---
+description: >-
+  Flow design and quality standards for Salesforce DX project.
+  Enforces bulkification safety, fault path coverage, null checks,
+  infinite loop prevention, and metadata hygiene for record-triggered
+  and screen flows. Apply when editing Flow metadata.
+globs:
+  - "force-app/**/*.flow-meta.xml"
+alwaysApply: false
+---
+
+# Flow Design Standards
+
+> **Review-time mechanical checklist:** For first-pass flow review items (bulkification risk, fault paths, null safety, infinite-loop prevention, entry conditions, etc.), see `.cursor/skills/sf-review-checklist-reference/SKILL.md` Section 11 — this rule defines *design standards*; the checklist defines *review checks*.
+
+## Shared Metadata Hygiene
+
+> For cross-cutting metadata hygiene (API version, description, package.xml), see `sf-metadata-standards-rule.mdc`.
+
+## Bulkification Safety
+
+- Record-triggered flows execute once per record by default. Flag any flow element that performs DML on unrelated objects inside a loop — this creates hidden N×DML patterns when invoked in bulk.
+- Apex Action or subflow elements that perform DML must not be placed inside a Loop element.
+
+## Fault Paths
+
+- Every DML element, callout element, and subflow invocation must have a configured Fault connector — do not rely on the default "uncaught fault" behavior.
+
+## Null Safety
+
+- Variables used in decision conditions must be initialized or null-safe (`{!var} != null` checks present before use).
+
+## Infinite Loop Prevention
+
+- Record-triggered flows that update the triggering record must include a condition or entry check to prevent re-triggering (e.g., a prior-value check on the entry condition).
+
+## Entry Conditions
+
+- Record-triggered flows must have specific entry conditions — do not use "Always" unless intentional and justified in the description.
+
+## Callout Restrictions
+
+- Callout elements (HTTP, External Service) are not supported in after-save record-triggered flows. Flag for async refactor if found.
+
+## Metadata Hygiene
+
+- API version must match project standard (66.0).
+- Flow must have a meaningful description explaining its purpose and trigger conditions.
+- Set a meaningful `interviewLabel` for debugging purposes.
+- `<status>Active</status>` only for flows ready for deployment. New flows in development should be `Inactive` or `Draft`.
+- Record-triggered flows must specify `<triggerType>` explicitly (`RecordAfterSave` or `RecordBeforeSave`).
+- API names use PascalCase (no `__c` suffix).
+- Label must be verb-first and describe the action (e.g., "Assign Tier on Member Update").

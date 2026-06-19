@@ -1,0 +1,168 @@
+---
+description: >-
+  Apex and trigger coding standards for Salesforce DX project.
+  Enforces the ITriggerHandler / GenericTriggerDispatcher framework, bulkification,
+  FLS/CRUD enforcement, naming conventions, and Loyalty Management-specific patterns.
+  Apply when writing or reviewing Apex classes and triggers.
+globs:
+  - "force-app/**/*.cls"
+  - "force-app/**/*.trigger"
+alwaysApply: false
+---
+
+# Apex Coding Standards
+
+## Trigger Framework
+
+Every trigger in this project follows the single-trigger-per-object dispatcher pattern:
+
+- **One trigger per SObject.** Never create a second trigger on an object that already has one.
+- **Trigger file is thin:** delegates immediately to `GenericTriggerDispatcher`.
+- **Handler class** implements `ITriggerHandler` and contains all business logic.
+- Handler class naming: `[ObjectName]TriggerHandler` (e.g., `LoyaltyProgramMemberTriggerHandler`).
+
+```apex
+// Correct pattern
+trigger LoyaltyProgramMemberTrigger on LoyaltyProgramMember (
+    before insert, before update, after insert, after update
+) {
+    GenericTriggerDispatcher.run(new LoyaltyProgramMemberTriggerHandler());
+}
+```
+
+No business logic in the trigger file itself.
+
+## Bulkification (Non-Negotiable)
+
+- **Never** place SOQL or DML inside a `for` loop — this is a Critical defect.
+- Collect IDs and keys in a loop; run one query outside the loop.
+- Collect records to insert/update/delete in a list; run one DML statement outside the loop.
+
+```apex
+// Correct
+Set<Id> memberIds = new Set<Id>();
+for (TransactionJournal tj : Trigger.new) {
+    memberIds.add(tj.LoyaltyProgramMemberId);
+}
+Map<Id, LoyaltyProgramMember> members = new Map<Id, LoyaltyProgramMember>(
+    [SELECT Id, [PROJECT_FIELD__c] FROM LoyaltyProgramMember WHERE Id IN :memberIds]
+);
+```
+
+## FLS / CRUD Enforcement
+
+- Use `Security.stripInaccessible(AccessType.READABLE, records)` before returning query results to UI.
+- Use `Security.stripInaccessible(AccessType.CREATABLE/UPDATABLE, records)` before DML in user context.
+- Use `WITH SECURITY_ENFORCED` in SOQL for user-context queries where stripInaccessible is not used.
+- System-context bypasses (e.g., `without sharing`) must be commented with justification.
+
+## Naming Conventions
+
+| Element | Convention | Example |
+|---|---|---|
+| Class | PascalCase | `AccountService`, `OrderEventBuilder` |
+| Trigger handler | `[Object]TriggerHandler` | `AccountTriggerHandler`, `OrderTriggerHandler` |
+| Method | camelCase, verb-first | `processRecords()`, `buildPayload()` |
+| Constant | UPPER_SNAKE_CASE | `MAX_RETRY_COUNT` |
+| Test class | `[ClassName]Test` | `AccountServiceTest` |
+| Custom exception | `[Name]Exception extends Exception` | `IntegrationException` |
+| Custom field (Apex ref) | Use API name | `[PROJECT_FIELD__c]` (e.g., `Status__c`, `ExternalId__c`) |
+
+## SOQL Best Practices
+
+- Use bind variables (`WHERE Id IN :idSet`). Never concatenate user input into dynamic SOQL.
+- Always include `LIMIT` on queries that could return unbounded rows.
+- Prefer relationship queries over multiple flat queries.
+- For loyalty objects, prefer the Business APIs (`loyalty.*`) over raw SOQL + DML where available.
+
+## Null Handling
+
+- **Prefer the null coalescing operator (`??`)** over explicit `!= null` ternaries for default values ([Apex docs](https://developer.salesforce.com/docs/atlas.en-us.apexcode.meta/apexcode/langCon_apex_NullCoalescingOperator.htm)).
+- Use `?.` (safe navigation) to traverse nullable chains without intermediate null checks.
+- Combine both for concise, readable null handling.
+
+```apex
+// Preferred — null coalescing + safe navigation
+String region = member.Partner_Geographic_Area__c ?? 'US';
+String partnerName = linkedPartner?.LoyaltyProgramPartner?.Name ?? 'Unknown';
+Integer retryCount = config?.Max_Retries__c?.intValue() ?? 3;
+
+// Avoid — verbose ternary
+String region = member.Partner_Geographic_Area__c != null
+    ? member.Partner_Geographic_Area__c : 'US';
+```
+
+- **When to use `??`:** Assigning a fallback/default when a value might be null.
+- **When NOT to use `??`:** When null means "skip processing" rather than "use default" — use an explicit `if (x != null)` guard instead.
+
+## Collection & Loop Efficiency (Non-Negotiable)
+
+- **Build Maps upfront, then do lookups — never iterate a second collection inside a loop.**
+- When you need to correlate two datasets, build a `Map<Key, Value>` from one collection *before* iterating the other.
+- This prevents O(n*m) complexity from nested iteration and reduces CPU time at scale.
+
+```apex
+// CORRECT — Map built upfront, O(n + m) total
+Map<Id, LoyaltyProgramPartner> partnerMap = new Map<Id, LoyaltyProgramPartner>(
+    [SELECT Id, Name, Partner_Code__c FROM LoyaltyProgramPartner WHERE Id IN :partnerIds]
+);
+
+for (LoyaltyPgmMbrLinkedPtnr link : linkedPartners) {
+    LoyaltyProgramPartner partner = partnerMap.get(link.LoyaltyProgramPartnerId);
+    if (partner != null) {
+        link.Description = 'Linked to ' + partner.Name;
+    }
+}
+```
+
+```apex
+// WRONG — nested iteration, O(n*m), governor-hostile at scale
+for (LoyaltyPgmMbrLinkedPtnr link : linkedPartners) {
+    for (LoyaltyProgramPartner partner : allPartners) {
+        if (partner.Id == link.LoyaltyProgramPartnerId) {
+            link.Description = 'Linked to ' + partner.Name;
+            break;
+        }
+    }
+}
+```
+
+**Rules:**
+- If you query related records, immediately put them in a `Map<Id, SObject>` or `Map<String, SObject>`.
+- Never search a `List` linearly for a matching record — use a Map lookup.
+- When processing trigger context, build Maps from `Trigger.oldMap` / `Trigger.newMap` rather than iterating `Trigger.old` inside `Trigger.new` loops.
+- For multi-key correlations (e.g., match on MembershipNumber + PartnerCode), use a composite key: `Map<String, SObject>` with key = `memberId + '|' + partnerCode`.
+
+## Error Handling
+
+- Wrap DML and callout operations in `try/catch`.
+- Log exceptions to the project's designated exception log object (see org-context.md) — do not silently swallow errors.
+- Use `Database.insert(list, false)` with `SaveResult` inspection when partial success is valid.
+- Remove `System.debug` statements from production code paths before commit.
+
+## Async Patterns
+
+- `@future`: `static void`, primitive/collection params only, no SObject arguments.
+- `Queueable`: implement `Database.AllowsCallouts` when making callouts.
+- Never call `System.enqueueJob()` inside a loop.
+- `Batch`: default scope 200; reduce to 50–100 for memory-intensive operations.
+- Prefer Platform Events for decoupled, event-driven integration over synchronous callouts (see org-context.md for project-specific Platform Event API names).
+
+## Loyalty Management Patterns
+
+- **Business APIs over raw DML:** Use `loyalty.LoyaltyEngineInput`, `loyalty.MemberPointsInput`, etc. instead of direct DML on `TransactionJournal`, `LoyaltyLedger`, or `LoyaltyMemberCurrency`.
+- **Platform Event publishing:** Use `EventBus.publish()` in dedicated publisher classes (e.g., `[PROJECT]EventPublisher`); implement `EventBus.EventPublishFailureCallback` for failure scenarios.
+- **Custom ID allocation:** If the project uses custom ID pools (e.g., `[PROJECT_ID_POOL__c]`), always use the designated allocation logic — never generate or format IDs manually.
+- **Recursion guard:** Loyalty operations can re-trigger member updates. Ensure `LoyaltyProgramMemberTriggerHandler` (and any related handlers) have a recursion guard (static boolean or counter).
+
+## Test Class Requirements
+
+- Annotate with `@isTest`.
+- Use `@TestSetup` for shared test data.
+- **Bulk test required:** At least one test method must insert/update 200+ records.
+- **Negative test required:** At least one test validates error conditions or null input.
+- Assertions must have meaningful messages: `System.assertEquals(expected, actual, 'Description of what failed')`.
+- `Test.startTest()` / `Test.stopTest()` wrapping async invocations.
+- `Test.setMock()` for all callout tests.
+- No `SeeAllData=true` without explicit justification in a comment.
+- `System.runAs(user)` for permission-sensitive scenarios.

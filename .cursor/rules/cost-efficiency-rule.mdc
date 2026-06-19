@@ -1,0 +1,48 @@
+---
+description: >-
+  Cursor Cost Efficiency Protocol — pre-execution summary, complexity gate,
+  and rule conflict priority. Always applied as a lean core. For detailed
+  guidance (skill loading, token patterns, thread lifecycle, parallel
+  orchestration) load sf-cost-efficiency-reference. For the slash-command
+  quick reference, load sf-workflow-templates-skill.
+alwaysApply: true
+---
+
+# Cursor Cost Efficiency Protocol
+
+> **Before starting work, complete the Pre-Execution Summary.**
+> For **Medium** or **High** complexity tasks, read `.cursor/skills/sf-cost-efficiency-reference/SKILL.md` before proceeding.
+
+## Pre-Execution Summary
+
+Before starting any substantive work, state:
+
+1. **Estimated complexity:** Low / Medium / High
+2. **Mode:** Chat / Plan / Agent
+3. **Subagents needed:** None / org-agent (fast) / research-agent (inherits) / dev-agent (inherits) / review-agent (fast)
+4. **Parallelizable:** Yes / No — [which agents can run concurrently]
+
+## Complexity Gate
+
+| Complexity | Criteria | Actions |
+|---|---|---|
+| **Low** | Single file, straightforward change, no org interaction | Proceed directly; no subagents; no Plan mode needed |
+| **Medium** | 2-5 files, some reasoning needed, may need org verification | Use Plan mode first; prefer direct tool calls over subagents for simple checks. **Load sf-cost-efficiency-reference.** |
+| **High** | 5+ files, architecture decisions, org verification + design, cross-cutting concerns | Use Plan mode with capable parent model; break into subtasks; delegate mechanical work to `model: fast` subagents. **Load sf-cost-efficiency-reference.** |
+
+## Rule Conflict Priority
+
+When multiple rules are simultaneously active: **(1) always-applied rules** take baseline precedence; **(2) glob-scoped rules** take precedence by specificity (narrower glob wins); **(3) skill files** (on-demand) apply last. If a conflict cannot be resolved, ask the user.
+
+## Context Continuity
+
+- **Never re-read files already in context** just because a new skill was loaded. Skills are additive, not resetting.
+- **Never re-ask clarified questions.** Consult prior turns before asking the user again.
+- **After conversation summary/compaction:** Treat the summary as authoritative. Do not re-derive conclusions already covered.
+- **Prefer `??` (null coalescing)** over `!= null` ternaries in Apex. Prefer `?.` (safe navigation) for nullable chains.
+- **Build Maps upfront** from query results before iterating. Never nest loops to find matching records — use `Map.get()`.
+
+## Related References
+
+- Detailed cost efficiency guidance (skill loading, token patterns, thread lifecycle, parallel orchestration): `.cursor/skills/sf-cost-efficiency-reference/SKILL.md`
+- Slash-command quick reference and workflow mapping: `.cursor/skills/sf-workflow-templates-skill/SKILL.md`

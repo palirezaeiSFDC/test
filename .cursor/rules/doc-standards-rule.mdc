@@ -1,0 +1,112 @@
+---
+description: >-
+  Documentation standards for design documents, impact assessments, and solution
+  designs produced. Enforces template adherence, citation requirements, and
+  Confluence publishing conventions. Glob-activated when editing documents in
+  docs/ or .cursor/plans/; slash commands that produce documents (solution
+  design, impact assessment, peer/self review, org health check, data model
+  analysis, security audit, feature implement, LDV performance review) load
+  this rule explicitly in their Phase 1 preamble.
+globs:
+  - "docs/**/*.md"
+  - ".cursor/plans/**/*.md"
+alwaysApply: false
+---
+
+# Documentation Standards
+
+> **Paste-ready templates:** Load `.cursor/skills/sf-doc-standards-skill/` for fill-in-the-bracket templates for Impact Assessment, Solution Design, and Technical Design documents. Use the template verbatim — do not re-assemble document structure from memory.
+
+## Document Types and Required Templates
+
+Every document in `docs/` must follow one of these templates. Do not create free-form documents.
+
+### Impact Assessment
+
+Required sections (in order):
+
+1. **Executive Summary** — current state, proposed change, key risks (3–5 sentences)
+2. **Scope** — what is changing; what is explicitly out of scope
+3. **Affected Components** — table: Component | Type | Change | Notes
+4. **Risk Analysis** — table: Risk | Severity (Critical/High/Medium/Low) | Likelihood | Mitigation
+5. **Testing Scope** — regression areas, new test cases required, performance test needs
+6. **Deployment Notes** — deployment order, feature flags, data migration requirements, rollback plan
+7. **References** — Jira tickets, Confluence pages, Salesforce documentation links
+
+### Solution Design / Technical Design Document
+
+Required sections (in order):
+
+1. **Problem Statement** — business context, requirements reference (Jira/Confluence link), constraints
+2. **Assumptions** — explicit; flag critical assumptions that, if wrong, invalidate the recommendation
+3. **High-Level Design** — Mermaid diagram (`flowchart` or `classDiagram`) showing major building blocks
+4. **Design Options** — minimum 2 options: Description | Pros | Cons | Governor Limit Considerations | Salesforce Documentation links
+5. **Recommendation** — chosen option with rationale; tradeoff acknowledgement
+6. **Data Model Changes** — Mermaid `erDiagram` if applicable
+7. **Integration Points** — APIs, Platform Events, external systems, protocols
+8. **Governor Limit Considerations** — SOQL, DML, heap, CPU, callout budgets
+9. **Org Verification Required** — list of objects, fields, metadata to verify before implementation
+10. **Implementation Sequence** — ordered steps with dependencies
+11. **References** — Jira tickets, Confluence pages, Salesforce documentation links
+
+## Diagrams
+
+- Use **Mermaid** for all architecture diagrams (`flowchart`, `classDiagram`, `erDiagram`, `sequenceDiagram`).
+- Every Solution Design document must have at least one architecture diagram.
+- Diagram node names must not contain spaces — use PascalCase or underscores.
+- Do not use colors or inline styles in Mermaid (not portable; use default theme).
+- Diagrams go in the `### High-Level Design` section; additional diagrams in their relevant sections.
+
+## Citation and Linking
+
+- Every Salesforce capability, API, or object referenced must include a link to official documentation on first mention.
+- Jira tickets referenced must include the full ticket key (e.g., `LYLT-900`) and a Jira link.
+- Confluence pages referenced must include page title and URL.
+- Do not make unsubstantiated capability claims — cite the Salesforce Help, Developer Guide, or Architect docs.
+
+## Document Metadata Header
+
+Every document must start with:
+
+```markdown
+# [Document Title]
+
+**Version:** [e.g., v1.0, v2.1]
+**Date:** [YYYY-MM-DD]
+**Author:** [Name or Agent]
+**Status:** [Draft | In Review | Approved | Superseded]
+**Jira:** [LYLT-XXX or N/A]
+**Confluence:** [Page URL or N/A]
+```
+
+## Naming Conventions
+
+- File names: `[DocumentType]_[FeatureOrChangeDescription]_v[N].md`
+- Use underscores, not spaces or hyphens, in file names.
+- Examples:
+  - `Impact_Assessment_BonvoyID_Allocation_v1.md`
+  - `Solution_Design_Stay_Accrual_Platform_Event_v2.md`
+  - `Technical_Design_Tier_Tenure_Feature_v1.md`
+
+## Confluence Publishing
+
+When publishing to Confluence:
+- Confirm with the user before calling `createConfluencePage` or `updateConfluencePage`.
+- Target space must be confirmed (do not infer from prior documents without asking).
+- Page title in Confluence must match the document title in the markdown header.
+- Include the Confluence page URL in the document's metadata header after publishing.
+
+## Keeping Documents Current
+
+- Update the **Version** and **Date** header fields whenever the document is substantively revised.
+- Change **Status** to `Superseded` (do not delete) when a newer version replaces the document.
+- Add a `## Change Log` section at the bottom for documents with more than one version:
+
+```markdown
+## Change Log
+
+| Version | Date | Author | Change Summary |
+|---|---|---|---|
+| v1.0 | 2026-01-15 | ... | Initial draft |
+| v2.0 | 2026-03-20 | ... | Updated after org verification |
+```

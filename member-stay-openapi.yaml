@@ -1,0 +1,243 @@
+openapi: 3.0.3
+
+info:
+  title: Salesforce Member Stay API (Custom)
+  description: >
+    Custom Salesforce endpoint to retrieve member stays grouped by current bucket logic.
+    Response includes postedStays, purgedStays, and ecStays.
+  version: 2026Q2.0.0
+
+servers:
+  - description: SwaggerHub API Auto Mocking
+    url: https://virtserver.swaggerhub.com/marriott-api/lylt-sf-member-stay/2026Q2.0.0
+  - url: https://{serverUrl}/services/apexrest
+    description: Salesforce Apex REST endpoint
+    variables:
+      serverUrl:
+        default: marriottloyalty--teamdev.sandbox.my.salesforce.com
+        description: Salesforce environment domain (My Domain)
+
+security:
+  - bearerAuth: []
+  - oAuth2:
+      - api
+
+tags:
+  - name: Member Stay
+    description: APIs for retrieving member stays grouped by bucket
+
+paths:
+  /loyalty/{loyaltyProgramName}/earn/sf-stays:
+    get:
+      tags:
+        - Member Stay
+      summary: Retrieve member stays by bucket
+      description: >
+        Returns member stays grouped into postedStays, purgedStays, and ecStays
+        using the same bucket logic as current implementation.
+      operationId: getMemberStays
+      parameters:
+        - name: loyaltyProgramName
+          in: path
+          required: true
+          description: Loyalty program name used to resolve the correct loyalty context.
+          schema:
+            type: string
+          example: MarriottBonvoy
+      responses:
+        '200':
+          description: Member stays retrieved successfully.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MemberStaysResponse'
+              examples:
+                success:
+                  summary: Successful member stay response
+                  value:
+                    postedStays:
+                      - airlinePartnerId: null
+                        brandCode: DE
+                        propertyName: Delta Hotels New York Times Square
+                        totalEarnings: 7000.00
+                        totalNights: 5
+                        RatePlanCode: DUMMY
+                        currencyCode: USD
+                        reservationType: null
+                        redemptionTransId: null
+                        visitType: null
+                        personalNights: 5
+                        earnTransactionIdentifier: 10090
+                        stayPostedDate: '2026-03-19'
+                        paymentTypeIdentifier: null
+                        stayStatus: Posted - Eligible
+                        earningPreference: Points
+                        totalRevenueInLocal: 500
+                        totalRevenue: 500
+                        propertyCode: DHNYTS
+                        departureDate: '2026-03-06'
+                        arrivalDate: '2026-03-01'
+                        goldArrivalFlag: true
+                        platarrivalFlag: false
+                      - airlinePartnerId: null
+                        brandCode: DE
+                        propertyName: Delta Hotels New York Times Square
+                        totalEarnings: 7000.00
+                        totalNights: 5
+                        RatePlanCode: DUMMY
+                        currencyCode: USD
+                        reservationType: null
+                        redemptionTransId: null
+                        visitType: null
+                        personalNights: 5
+                        earnTransactionIdentifier: 10089
+                        stayPostedDate: '2026-03-19'
+                        paymentTypeIdentifier: null
+                        stayStatus: Posted - Eligible
+                        earningPreference: Miles
+                        totalRevenueInLocal: 500
+                        totalRevenue: 500
+                        propertyCode: DHNYTS
+                        departureDate: '2026-03-06'
+                        arrivalDate: '2026-03-01'
+                        goldArrivalFlag: false
+                        platarrivalFlag: true
+                    purgedStays: []
+                    ecStays: []
+        '400':
+          $ref: 'https://api.swaggerhub.com/apis/marriott-api/sf-common-schemas/1.0.0#/components/responses/BadRequest400'
+        '401':
+          $ref: 'https://api.swaggerhub.com/apis/marriott-api/sf-common-schemas/1.0.0#/components/responses/Unauthorized401'
+        '403':
+          $ref: 'https://api.swaggerhub.com/apis/marriott-api/sf-common-schemas/1.0.0#/components/responses/Forbidden403'
+        '404':
+          $ref: 'https://api.swaggerhub.com/apis/marriott-api/sf-common-schemas/1.0.0#/components/responses/NotFound404'
+        '500':
+          $ref: 'https://api.swaggerhub.com/apis/marriott-api/sf-common-schemas/1.0.0#/components/responses/InternalServerError500'
+        '503':
+          $ref: 'https://api.swaggerhub.com/apis/marriott-api/sf-common-schemas/1.0.0#/components/responses/ServiceUnavailable503'
+
+components:
+  securitySchemes:
+    bearerAuth:
+      $ref: 'https://api.swaggerhub.com/apis/marriott-api/sf-common-schemas/1.0.0#/components/securitySchemes/bearerAuth'
+    oAuth2:
+      $ref: 'https://api.swaggerhub.com/apis/marriott-api/sf-common-schemas/1.0.0#/components/securitySchemes/oAuth2'
+
+  schemas:
+    MemberStaysResponse:
+      type: object
+      description: Member stays grouped by posted, purge, and ECS buckets.
+      required:
+        - postedStays
+        - purgedStays
+        - ecStays
+      properties:
+        postedStays:
+          type: array
+          description: Posted stays for the requested context.
+          items:
+            $ref: '#/components/schemas/MemberStay'
+        purgedStays:
+          type: array
+          description: Purge stays bucket (same logic as today).
+          items:
+            $ref: '#/components/schemas/MemberStay'
+        ecStays:
+          type: array
+          description: ECS stays bucket (same logic as today).
+          items:
+            $ref: '#/components/schemas/MemberStay'
+
+    MemberStay:
+      type: object
+      description: Member stay record in any bucket.
+      properties:
+        airlinePartnerId:
+          type: string
+          nullable: true
+          example: null
+        brandCode:
+          type: string
+          example: DE
+        propertyName:
+          type: string
+          example: Delta Hotels New York Times Square
+        totalEarnings:
+          type: number
+          format: double
+          example: 7000.00
+        totalNights:
+          type: integer
+          example: 5
+        RatePlanCode:
+          type: string
+          example: DUMMY
+        currencyCode:
+          type: string
+          example: USD
+        reservationType:
+          type: string
+          nullable: true
+          example: null
+        redemptionTransId:
+          type: string
+          nullable: true
+          example: null
+        visitType:
+          type: string
+          nullable: true
+          example: null
+        personalNights:
+          type: number
+          format: double
+          example: 5.00
+        earnTransactionIdentifier:
+          type: integer
+          example: 10090
+        stayPostedDate:
+          type: string
+          format: date
+          description: Mapped from CreatedDate (date portion).
+          example: '2026-03-19'
+        paymentTypeIdentifier:
+          type: string
+          nullable: true
+          example: null
+        stayStatus:
+          type: string
+          example: Posted - Eligible
+        earningPreference:
+          type: string
+          description: Ensure mapped as Points or Miles.
+          enum:
+            - Points
+            - Miles
+          example: Points
+        totalRevenueInLocal:
+          type: number
+          format: double
+          example: 500.00
+        totalRevenue:
+          type: number
+          format: double
+          example: 500.00
+        propertyCode:
+          type: string
+          example: DHNYTS
+        departureDate:
+          type: string
+          format: date
+          example: '2026-03-06'
+        arrivalDate:
+          type: string
+          format: date
+          example: '2026-03-01'
+        goldArrivalFlag:
+          type: boolean
+          nullable: true
+          example: true
+        platarrivalFlag:
+          type: boolean
+          nullable: true
+          example: false

@@ -1,0 +1,167 @@
+---
+description: >-
+  Lightning Web Component coding standards.
+  Enforces reactive data patterns, error handling, component composition,
+  accessibility, and Salesforce LDS usage. Apply when writing or reviewing LWC files.
+globs:
+  - "force-app/**/lwc/**/*.js"
+  - "force-app/**/lwc/**/*.html"
+  - "force-app/**/lwc/**/*.css"
+  - "force-app/**/lwc/**/*.xml"
+alwaysApply: false
+---
+
+# LWC Coding Standards
+
+## Reactive Data Patterns
+
+- Use `@wire` for data that should react to property changes. Wire adapters re-run automatically when tracked inputs change.
+- Use imperative Apex calls when: the call is conditional, requires parameters not available at component init, or must be triggered by user action.
+- Never make synchronous Apex calls in `connectedCallback` — this blocks rendering. Use `@wire` or `async/await` with imperative calls.
+
+```javascript
+// Correct: wire for reactive data
+@wire(getLoyaltyMemberDetails, { memberId: '$memberId' })
+wiredMember({ error, data }) {
+    if (data) {
+        this.member = data;
+        this.error = undefined;
+    }
+    if (error) {
+        this.error = reduceErrors(error);
+        this.member = undefined;
+    }
+}
+
+// Correct: imperative for user-triggered
+async handleEnroll() {
+    try {
+        const result = await enrollMember({ memberId: this.memberId });
+        this.showSuccess(result);
+    } catch (error) {
+        this.error = reduceErrors(error);
+    }
+}
+```
+
+## Error Handling (Mandatory)
+
+- **All `@wire` adapters must handle the `error` property.** Uncaught wire errors produce silent failures.
+- **All imperative calls must have `.catch()` or `try/catch`.**
+- Surface user-friendly error messages using a shared `reduceErrors` utility; do not expose raw error objects to users.
+- Use `lightning-card` or a consistent error display pattern — not inline `{error}` binding.
+
+## Public API (`@api`)
+
+- `@api` properties are read-only from inside the component. **Never mutate `@api` properties directly** — clone first: `const clone = JSON.parse(JSON.stringify(this.apiProp))`.
+- Mark only properties that the parent genuinely needs to set as `@api`.
+- Methods exposed via `@api` should be used sparingly; prefer events for child-to-parent communication.
+
+## Component Communication
+
+- **Child → Parent:** Dispatch a `CustomEvent` with `this.dispatchEvent(new CustomEvent('eventname', { detail: payload }))`.
+- **Parent → Child:** Set `@api` properties or call `@api` methods via template ref.
+- **Sibling / cross-tree:** Use a Lightning Message Channel (`@wire(MessageContext)` + `publish`/`subscribe`). Avoid global state in JS modules for component communication.
+- Unsubscribe from message channels in `disconnectedCallback`.
+
+## Lifecycle Hooks
+
+- `connectedCallback`: register event listeners, set up subscriptions. Do not make Apex calls here directly.
+- `disconnectedCallback`: **always** clean up event listeners and message channel subscriptions to prevent memory leaks.
+- `renderedCallback`: use sparingly; avoid Apex calls here. Guard with a boolean flag to prevent repeated execution.
+
+## Lightning Data Service (LDS)
+
+- Prefer `getRecord`, `updateRecord`, `createRecord`, `deleteRecord` (LDS wire adapters) for standard CRUD operations — these leverage the client-side cache and reduce Apex calls.
+- Use custom Apex only when LDS cannot satisfy the requirement (complex SOQL, multi-object DML, business logic).
+
+## Data Access — GraphQL vs `@wire` vs Imperative Apex
+
+Choose the mechanism that matches the read pattern. Match first, then optimize.
+
+### Decision Rules
+
+- **Use `@wire` with LDS** (`getRecord`, `getRelatedListRecords`, `getPicklistValues`, etc.) for:
+  - Single-record reads on a record page
+  - Simple parent-child lookups where record-level cache coherence matters
+  - Reactive UI that should auto-refresh when the record changes
+  - Preferred default for CRUD-style UI.
+- **Use LDS GraphQL** (`@wire(graphql, { query: gql`…` })`) for:
+  - Cross-object queries the view needs in one round trip
+  - Lists with filtering, sorting, or pagination
+  - Aggregated reads that would otherwise require multiple `@wire` calls
+  - Column projection — pull only the fields the UI renders, no more
+- **Use imperative Apex** (`@AuraEnabled` method called from JS) only when:
+  - The operation is user-triggered (button click), so reactivity is neither needed nor wanted
+  - LDS / GraphQL does not cover the source (custom REST, Experience Cloud, Connect API)
+  - Server-side business logic is required (Loyalty business APIs, complex aggregation beyond GraphQL's capability)
+  - The call must happen outside the reactive `@wire` lifecycle (setTimeout handlers, workflow orchestration)
+
+### Anti-Patterns — Do Not
+
+- Do not use GraphQL for single-record reads already covered by `getRecord` — loses LDS cache coherence.
+- Do not use imperative Apex for simple reads where `@wire` works — loses reactivity.
+- Do not call GraphQL (or any data API) synchronously in `connectedCallback`. Use `@wire` or defer imperative calls until after `renderedCallback` or user interaction.
+- Do not mix LDS and imperative DML for the same record in the same component — cache invalidation gets inconsistent.
+
+### Scaffolding with the Salesforce MCP
+
+When building a new GraphQL-backed component, scaffold the query using Salesforce DX MCP tools instead of hand-writing GraphQL:
+- `fetch_lds_graphql_schema` — inspect the schema for the object(s)
+- `create_lds_graphql_read_query` — generate the read query with valid field paths
+- `create_lds_graphql_mutation_query` — generate a mutation if needed
+
+### References
+
+- [Lightning Data Service GraphQL Wire Adapter](https://developer.salesforce.com/docs/platform/lwc/guide/data-graphql.html)
+- [LDS Developer Guide](https://developer.salesforce.com/docs/platform/lwc/guide/data-ui-api.html)
+
+## Schema Imports
+
+- Never hardcode object API names or field names as strings in JS.
+- Use `@salesforce/schema` imports for type safety:
+
+```javascript
+import LOYALTY_MEMBER_OBJECT from '@salesforce/schema/LoyaltyProgramMember';
+import BONVOY_ID_FIELD from '@salesforce/schema/LoyaltyProgramMember.BonvoyID__c';
+```
+
+## Naming Conventions
+
+| Element | Convention | Example |
+|---|---|---|
+| Component folder | `camelCase` | `loyaltyMemberCard` |
+| JS class properties | `camelCase` | `memberId`, `isLoading` |
+| `@api` properties | `camelCase`, descriptive | `loyaltyProgramId` |
+| Custom events | `kebab-case` | `member-enrolled`, `tier-updated` |
+| CSS classes | `kebab-case` | `.member-card__header` |
+
+## HTML Template Standards
+
+- Use `lightning-*` base components wherever possible (layout, inputs, buttons, cards, datatable).
+- Avoid inline styles — use CSS classes in the component's `.css` file.
+- Use `lwc:if` / `lwc:else` (API 59.0+) rather than `if:true` / `if:false` for conditional rendering.
+- Keep templates lean: extract complex repeated markup into child components.
+
+## Accessibility
+
+- All interactive elements must have accessible labels (`aria-label`, `title`, or visible label text).
+- Use `lightning-button` instead of `<button>` for consistent focus management.
+- Avoid removing focus outlines (`outline: none`) without providing an alternative focus indicator.
+
+## Component Metadata (XML)
+
+- Set `apiVersion` to match project standard (66.0).
+- `isExposed: true` only for components intended to be placed on Lightning pages.
+- `targets` must include only the Lightning page types where the component is actually designed to work.
+- `targetConfigs` with `<supportedFormFactors>` if the component is mobile-aware.
+
+## Performance
+
+- Avoid loading large datasets in `connectedCallback`. Paginate or lazy-load.
+- Use `lightning-datatable` with `key-field` for lists — do not build custom table rows with `template:iterator` for large datasets.
+- Minimize wire calls; combine data needs into a single Apex method when multiple fields from the same record are needed.
+
+## MCP Tool Routing for LWC
+
+> LWC MCP tool routing (all `guide_lwc_*`, `create_lwc_*`, `orchestrate_lwc_*`, LDS, SLDS tools and fallback conditions) lives in `sf-mcp-routing-rule.mdc`.

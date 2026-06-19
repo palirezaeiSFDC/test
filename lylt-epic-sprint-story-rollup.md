@@ -1,0 +1,74 @@
+# LYLT Epic Sprint Story Rollup
+
+Updated from Jira sprint field on 2026-06-14.
+
+## LYLT-8824
+**Epic Summary:** Earn | Partnerships & Co-Brand | CLM Miles Preference Validations + Statement of Activity for Miles as part of a Stay (SF Configuration)
+
+- `LYLT-22407` — Design: CLM miles conversion rules and contract for Member Stay processing — **LYLT | Stay & Earn | 263.2**
+- `LYLT-22408` — Build: Configure CLM miles conversion table integration for Member Stay processing — **LYLT | Stay & Earn | 263.3**
+- `LYLT-22402` — Validate SM02 disposition for miles preference stays (>1 year old) — **LYLT | Stay & Earn | 263.3**
+- `LYLT-22405` — CEC/Add-Stay controls for miles earners (audit, modify, soft-delete restrictions) — **LYLT | Stay & Earn | 263.3**
+- `LYLT-22404` — Validate SM11 disposition for partner/brand miles eligibility — **LYLT | Stay & Earn | 263.3**
+- `LYLT-22406` — Validate 6064 disposition for inactive airline partner window — **LYLT | Stay & Earn | 263.3**
+- `LYLT-22403` — Member Stay API: branch processing by earning preference (Points vs Miles) — **LYLT | Stay & Earn | 263.3**
+
+## LYLT-20917
+**Epic Summary:** Earn Foundational | P1 | Enhancement to Transaction Journal Setup - 2026Q3 - Stay, Earn (SF Config)
+
+- `LYLT-23302` — Remove is_NUA__c field from TransactionJournalObject — **LYLT | Stay & Earn | 263.1**
+- `LYLT-15742` — Refactor Stay APIs to Introduce Top-Level stay Payload and Deprecate TJ Stay Fields — **LYLT | Stay & Earn | 263.2**
+
+## LYLT-14270
+**Epic Summary:** Earn | P1 | CLM Multipliers Historical Tracking: Brand/EQN - Year over year (SF Configuration)
+
+- `LYLT-20543` — [Design] CLM Multipliers Historical Tracking - Pre-Build Signoff and Build Handoff — **LYLT | Stay & Earn | 263.1**
+- `LYLT-22454` — Build: CLM Multiplier History foundation for P2 point-in-time logic — **LYLT | Stay & Earn | 263.2**
+
+## LYLT-356
+**Epic Summary:** Earn | P1 | CLM Point Source Tracking Management (SF Configuration) Q3 Dependency
+
+- `LYLT-7632` — Point Source Type Mapping — **Unscheduled**
+- `LYLT-22894` — QA Only: Validate AC1-AC3 point source tracking and ledger subcurrency visibility — **LYLT | Stay & Earn | 263.2**
+- `LYLT-22895` — QA Only: AC-8 reporting usage validation (high-level) — **LYLT | Stay & Earn | 263.2**
+- `LYLT-22896` — QA Only: Redeem validation for AC5 using StayRedemption currency subtype sequence — **LYLT | Stay & Earn | 263.2**
+
+## LYLT-16103
+**Epic Summary:** Earn | P1 | eBonus Solution (SF Configuration)
+
+- `LYLT-20548` — [Design] eBonus Solution - Pre-Build Signoff and Build Handoff — **Unscheduled**
+- `LYLT-22465` — Design Story - eBonus API Contracts (SwaggerHub) — **LYLT | Stay & Earn | 263.1**
+- `LYLT-22466` — Build Story - Transaction Status Refresh Service — **LYLT | Stay & Earn | 263.4**
+- `LYLT-22467` — Build Story - eBonus Intake, Posting, and TJ Subtype — **LYLT | Stay & Earn | 263.5**
+- `LYLT-22468` — Story - Migrate/Seed Per-Property Bonus Code Mapping into CLM — **LYLT | SF-Implement | 263.2**
+- `LYLT-22469` — Build Story - Available Bonus by Property API — **LYLT | Stay & Earn | 263.5**
+- `LYLT-22470` — Build Story - eBonus Cost API — **LYLT | Stay & Earn | 263.5**
+- `LYLT-22471` — Build Story - Admin CRUD, RBAC Enforcement, and Goodwill Bonus Operations — **LYLT | Stay & Earn | 263.6**
+- `LYLT-22472` — Build Story - Automated New Property Bonus Code Provisioning — **LYLT | Stay & Earn | 263.5**
+- `LYLT-22473` — Design Story - Admin, RBAC, and Goodwill Operations Model — **LYLT | Stay & Earn | 263.4**
+- `LYLT-22474` — Build Story - Earn/LFS Event Enhancement for eBonus — **LYLT | Stay & Earn | 263.6**
+
+## LYLT-17139
+**Epic Summary:** Earn | P1 | Points Calculations: Marriott Bonvoy Events Part 2 (SF Configuration)
+
+- `LYLT-20564` — Design Story - LYLT-17139 Architecture and Build Handoff — **Unscheduled**
+- `LYLT-22810` — Design: MI Bonvoy Events Part 2 - Brand Participation, SOA, Platform Event, and Brand Validation — **LYLT | Stay & Earn | 263.2**
+- `LYLT-22813` — Build: Bonvoy Event Brand Participation Control — **LYLT | Stay & Earn | 263.3**
+- `LYLT-22812` — Build: Platform Event Mapping for MI Bonvoy Event Points Transactions — **LYLT | Stay & Earn | 263.3**
+- `LYLT-22814` — Build: Bonvoy Event Wrapper Validation - Invalid Brand Rejection — **LYLT | Stay & Earn | 263.3**
+- `LYLT-22816` — Build: Statement of Activity Support for Bonvoy Event Points Transactions — **LYLT | Stay & Earn | 263.3**
+
+## LYLT-21649
+**Epic Summary:** Q3 | P1 | Earn RBAC Service Operations Group: Cancel MI Bonvoy Event Transaction
+
+- `LYLT-22441` — [Design] CLM RBAC Operations: Cancel MI Bonvoy Event Transaction - End-to-End Design — **LYLT | Stay & Earn | 263.5**
+- `LYLT-22443` — [Build] CLM RBAC Operations: Cancel MI Bonvoy Event Transaction - Consolidated Build — **LYLT | Stay & Earn | 263.6**
+
+## LYLT-355
+**Epic Summary:** Earn | P1 | CLM Points Expiration (SF Configuration) Q3 Dependency
+
+- `LYLT-20554` — Design - LYLT-355 Points Expiration Architecture and Build Handoff — **Unscheduled**
+- `LYLT-23700` — Configure eligible activity journal type/subtype for activity-based expiration — **LYLT | Stay & Earn | 263.4**
+- `LYLT-23701` — Validate and handle single-level rollback for activity date corrections — **LYLT | Stay & Earn | 263.5**
+- `LYLT-23702` — QA Only - Validate expiration and ledger traceability consistency end-to-end — **LYLT | Stay & Earn | 263.5**
+- `LYLT-23703` — Configure and schedule DP job for member last activity date updates — **LYLT | Stay & Earn | 263.5**
